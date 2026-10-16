@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador Interactivo • Aula N.° 3 • TuProfe20Lab • Proporcionalidad y Semejanza de Triángulos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+
+    <style>
+        :root {
+            --bg-base: #090914;
+            --primary: #00f2fe;
+            --accent: #fe0979;
+            --neon-green: #39ff14;
+            --neon-orange: #ff5e00;
+            --neon-purple: #bf00ff;
+            --neon-yellow: #facc15;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-base);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Tipografía LaTeX exclusiva para fórmulas, razones geométricas y variables */
+        .math-expr {
+            font-family: 'KaTeX_Main', 'Times New Roman', Georgia, serif;
+            letter-spacing: 0.02em;
+        }
+
+        .math-var {
+            font-family: 'KaTeX_Math', 'Times New Roman', Georgia, serif;
+            font-style: italic;
+        }
+
+        .overline-seg {
+            text-decoration: overline;
+            text-decoration-thickness: 1.5px;
+        }
+
+        /* Fracción vertical estilo LaTeX */
+        .latex-frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 0.22em;
+            line-height: 1.08;
+        }
+        .latex-frac > .num {
+            border-bottom: 2px solid currentColor;
+            padding: 0 0.3em 0.1em;
+        }
+        .latex-frac > .den {
+            padding: 0.1em 0.3em 0;
+        }
+
+        @keyframes grid-flow {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100px; }
+        }
+        .animate-grid-flow {
+            animation: grid-flow 2.5s linear infinite;
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px currentColor); stroke-width: 6.5px; }
+            50% { filter: drop-shadow(0 0 18px currentColor); stroke-width: 8.5px; }
+        }
+        .highlight-active-geo {
+            animation: pulse-glow 1.1s ease-in-out infinite;
+        }
+
+        /* Botones táctiles 3D */
+        .gp-btn {
+            position: relative;
+            font-weight: 900;
+            border-radius: 1rem;
+            box-shadow: 0 6px 0 0 rgba(0,0,0,0.65);
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+        }
+        .gp-btn:active {
+            box-shadow: 0 0px 0 0 rgba(0,0,0,0.65);
+            transform: translateY(6px);
+        }
+        .gp-btn-cyan {
+            background: linear-gradient(to bottom, #22d3ee, #0891b2);
+            color: #000000;
+            border-bottom: 4px solid #155e75;
+        }
+        .gp-btn-pink {
+            background: linear-gradient(to bottom, #ec4899, #be185d);
+            color: #ffffff;
+            border-bottom: 4px solid #831843;
+        }
+        .gp-btn-green {
+            background: linear-gradient(to bottom, #4ade80, #16a34a);
+            color: #000000;
+            border-bottom: 4px solid #166534;
+        }
+        .gp-btn-yellow {
+            background: linear-gradient(to bottom, #fde047, #ca8a04);
+            color: #000000;
+            border-bottom: 4px solid #854d0e;
+        }
+        .gp-btn-slate {
+            background: linear-gradient(to bottom, #475569, #1e293b);
+            color: #ffffff;
+            border-bottom: 4px solid #0f172a;
+        }
+
+        /* Inputs interactivos para el alumno */
+        .student-input {
+            background: rgba(15, 23, 42, 0.95);
+            border: 2px solid #475569;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .student-input:focus {
+            outline: none;
+            border-color: #00f2fe;
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.45);
+            background: #0f172a;
+        }
+        .student-input.valid-input {
+            border-color: #39ff14;
+            color: #39ff14;
+            background: rgba(20, 83, 45, 0.35);
+            box-shadow: 0 0 14px rgba(57, 255, 20, 0.3);
+        }
+        .student-input.invalid-input {
+            border-color: #fe0979;
+            color: #fe0979;
+            background: rgba(131, 24, 67, 0.35);
+        }
+
+        /* Deslizadores personalizados */
+        input[type=range].neon-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 999px;
+            outline: none;
+            border: 1px solid #334155;
+        }
+        input[type=range].neon-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00f2fe;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 12px #00f2fe;
+            cursor: pointer;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #090914; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
+    </style>
+</head>
+<body class="min-h-screen font-sans select-none relative flex flex-col justify-between">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-[#090914]">
+        <div class="absolute top-[4%] left-1/2 -translate-x-1/2 w-[780px] h-[780px] rounded-full bg-gradient-to-b from-cyan-600 via-pink-600 to-transparent opacity-15 blur-[110px]"></div>
+        <div class="absolute bottom-[-25%] left-[-50%] w-[200%] h-[110%] opacity-25 animate-grid-flow" style="
+            background-image: linear-gradient(rgba(0, 242, 254, 0.45) 2px, transparent 2px), linear-gradient(90deg, rgba(0, 242, 254, 0.45) 2px, transparent 2px);
+            background-size: 90px 90px;
+            transform: perspective(1000px) rotateX(70deg);
+            box-shadow: inset 0 120px 120px #090914;
+        "></div>
+    </div>
+
+    <!-- PORTADA PRINCIPAL -->
+    <section id="coverPortalSection" class="relative z-10 max-w-7xl w-full mx-auto my-auto p-4 sm:p-6 animate-fade-in">
+        <div class="bg-black/80 p-5 sm:p-8 rounded-[3rem] backdrop-blur-2xl border border-white/10 shadow-[0_0_120px_rgba(0,242,254,0.22)] flex flex-col items-center text-center">
+            <div class="inline-flex items-center gap-2 bg-cyan-950/90 border border-cyan-500/60 px-4 py-1.5 rounded-full mb-2">
+                <i class="fa-solid fa-compass-drafting text-cyan-400 text-xs"></i>
+                <span class="text-cyan-300 font-black tracking-[0.22em] uppercase text-xs sm:text-sm">
+                    SIMULADOR INTERACTIVO • AULA N.° 3
+                </span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-black mb-1 tracking-tight text-white" style="text-shadow: 0 0 35px rgba(0,242,254,0.6)">
+                TuProfe20Lab
+            </h1>
+            <h2 class="text-2xl sm:text-4xl font-black leading-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 uppercase">
+                Proporcionalidad y Semejanza de Triángulos
+            </h2>
+            <p class="text-slate-200 text-sm sm:text-base max-w-4xl mb-6 font-medium">
+                Manipula libremente las rectas paralelas, secantes, bisectrices y vértices de los triángulos directamente en la pizarra para comprobar que las razones geométricas y la semejanza se cumplen siempre.
+            </p>
+
+            <!-- BLOQUE 1: PROPORCIONALIDAD (1 AL 4) -->
+            <div class="w-full mb-6 text-left">
+                <div class="flex items-center gap-3 mb-3 px-2">
+                    <span class="px-4 py-1.5 rounded-full bg-cyan-950 border-2 border-cyan-400 text-cyan-300 text-xs sm:text-base font-black uppercase tracking-wider shadow-[0_0_20px_rgba(0,242,254,0.25)]">
+                        <i class="fa-solid fa-ruler-combined mr-1.5"></i> BLOQUE I • PROPORCIONALIDAD (PROPIEDADES 1 A 4)
+                    </span>
+                    <div class="h-[2px] flex-1 bg-gradient-to-r from-cyan-500/50 to-transparent"></div>
+                </div>
+                <div id="coverProporcionalidadGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full">
+                    <!-- Generado dinámicamente -->
+                </div>
+            </div>
+
+            <!-- BLOQUE 2: SEMEJANZA DE TRIÁNGULOS (1 AL 3) -->
+            <div class="w-full text-left">
+                <div class="flex items-center gap-3 mb-3 px-2">
+                    <span class="px-4 py-1.5 rounded-full bg-pink-950 border-2 border-pink-500 text-pink-300 text-xs sm:text-base font-black uppercase tracking-wider shadow-[0_0_20px_rgba(254,9,121,0.25)]">
+                        <i class="fa-solid fa-shapes mr-1.5"></i> BLOQUE II • SEMEJANZA DE TRIÁNGULOS (CRITERIOS 1 A 3)
+                    </span>
+                    <div class="h-[2px] flex-1 bg-gradient-to-r from-pink-500/50 to-transparent"></div>
+                </div>
+                <div id="coverSemejanzaGrid" class="grid grid-cols-1 md:grid-cols-3 gap-3.5 w-full">
+                    <!-- Generado dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ÁREA DE TRABAJO UNIFICADA EN UNA SOLA CAJA CENTRAL -->
+    <div id="labWorkspaceWrapper" class="hidden relative z-10 flex-1 flex flex-col justify-between max-w-[1620px] w-full mx-auto p-2 sm:p-4 gap-3">
+
+        <!-- HUD Header Superior con Separación en 2 Bloques -->
+        <header class="bg-black/80 backdrop-blur-2xl border border-white/15 rounded-[1.8rem] px-4 py-2.5 sm:px-5 sm:py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl">
+            <div class="flex items-center gap-3">
+                <button onclick="openCoverPortal()" class="gp-btn gp-btn-slate px-4 py-2 text-xs sm:text-sm gap-2">
+                    <i class="fa-solid fa-table-cells-large text-cyan-400"></i>
+                    <span>PORTADA</span>
+                </button>
+                <div>
+                    <h1 class="text-sm sm:text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-yellow-400 uppercase">
+                        AULA N.° 3 • TUPROFE20LAB
+                    </h1>
+                    <p id="headerSubtitleBadge" class="text-xs sm:text-sm text-slate-300 font-bold tracking-widest uppercase">
+                        BLOQUE I: PROPORCIONALIDAD • PROPIEDAD 1 DE 4
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navegación separada en Bloque Proporcionalidad y Bloque Semejanza -->
+            <div class="flex flex-wrap items-center gap-2" id="topTheoremNav">
+                <!-- Renderizado dinámicamente en 2 bloques -->
+            </div>
+
+            <!-- Botón de Sonido -->
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2 sm:px-3.5 sm:py-2 text-white bg-slate-800 rounded-xl hover:bg-slate-700 transition-colors border border-slate-600 flex items-center gap-2 font-bold text-xs sm:text-sm">
+                <i id="soundIcon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                <span id="soundText" class="hidden xl:inline">SONIDO ON</span>
+            </button>
+        </header>
+
+        <!-- CAJA CENTRAL ÚNICA PRINCIPAL: PIZARRA AMPLIA MANIPULABLE + PANEL LATERAL INTEGRADO CON TEOREMA, ROBO-PROFE Y EJEMPLOS -->
+        <main class="flex-1 bg-slate-900/90 backdrop-blur-2xl border-2 border-cyan-500/40 rounded-[2.4rem] p-3.5 sm:p-5 shadow-[0_0_80px_rgba(0,242,254,0.14)] flex flex-col gap-4">
+
+            <!-- Cabecera Interna de la Caja Central: Título del Teorema, Fórmula LaTeX y Botones Detectores de Elementos -->
+            <div class="bg-black/70 border border-white/10 rounded-3xl p-3 sm:p-4 flex flex-col xl:flex-row items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span id="theoremCategoryPill" class="text-xs sm:text-sm font-black text-cyan-300 bg-cyan-950 border border-cyan-500/60 px-3.5 py-1 rounded-full uppercase tracking-wider">
+                        BLOQUE I • PROPORCIONALIDAD
+                    </span>
+                    <h2 id="theoremTitleDisplay" class="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">
+                        TEOREMA DE TALES
+                    </h2>
+                    <span id="theoremConditionBadge" class="text-xs sm:text-sm font-black text-yellow-300 bg-yellow-950/90 border border-yellow-600 px-3.5 py-1 rounded-full">
+                        Si L₁ // L₂ // L₃
+                    </span>
+                </div>
+
+                <!-- Fórmula LaTeX Destacada -->
+                <div id="theoremLatexFormulaBox" class="math-expr text-xl sm:text-2xl font-bold text-yellow-300 bg-slate-950 px-5 py-2 rounded-2xl border-2 border-cyan-400/70 shadow-[0_0_20px_rgba(0,242,254,0.2)]">
+                    <!-- Fórmula LaTeX -->
+                </div>
+
+                <!-- Botones de modo de visualización -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button onclick="switchDiagramViewMode('EXPLORE')" id="modeBtn-EXPLORE" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-cyan-400 text-black shadow-[0_0_15px_rgba(0,242,254,0.45)] transition-all">
+                        <i class="fa-solid fa-hand-pointer mr-1"></i> Manipular Figura en Vivo
+                    </button>
+                    <button onclick="switchDiagramViewMode('EX1')" id="modeBtn-EX1" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-800 text-cyan-300 border border-cyan-500/40 hover:bg-slate-700 transition-all">
+                        <i class="fa-solid fa-1 mr-1"></i> Datos Ej. 1
+                    </button>
+                    <button onclick="switchDiagramViewMode('EX2')" id="modeBtn-EX2" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-800 text-pink-300 border border-pink-500/40 hover:bg-slate-700 transition-all">
+                        <i class="fa-solid fa-2 mr-1"></i> Datos Ej. 2
+                    </button>
+                    <button onclick="resetGeometryToDefault()" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-yellow-300 border border-yellow-500/40 transition-all" title="Restaurar posiciones originales">
+                        <i class="fa-solid fa-rotate"></i> Reiniciar Figura
+                    </button>
+                </div>
+            </div>
+
+            <!-- Riel de Resaltado de Elementos que intervienen en la propiedad -->
+            <div class="bg-black/60 border border-white/10 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-wider mr-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-sparkles text-yellow-400"></i> ELEMENTOS DE LA PROPIEDAD:
+                    </span>
+                    <div id="elementDetectorButtons" class="flex flex-wrap items-center gap-2">
+                        <!-- Botones generados según cada propiedad -->
+                    </div>
+                </div>
+                <button onclick="highlightElement('ALL')" class="px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm bg-emerald-500 text-black hover:bg-emerald-400 transition-all flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-eye"></i> VER TODOS
+                </button>
+            </div>
+
+            <!-- CUERPO CENTRAL UNIFICADO: ZONA DE DEMOSTRACIÓN AMPLIA (8 COL) + LATERAL DERECHO CON EJEMPLOS Y GUÍA (4 COL) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1">
+
+                <!-- ZONA DE DEMOSTRACIÓN GEOMÉTRICA AMPLIADA (SIN CORTES) -->
+                <div class="lg:col-span-8 flex flex-col justify-between bg-gradient-to-b from-[#050711] via-[#090d22] to-[#05060f] rounded-[2rem] border-2 border-slate-700 overflow-hidden shadow-inner relative min-h-[540px] sm:min-h-[620px]">
+
+                    <!-- Banner flotante superior de instrucción de manipulación -->
+                    <div class="px-4 py-3 bg-black/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-10">
+                        <div class="flex items-center gap-2.5">
+                            <span id="diagramModeDot" class="w-3.5 h-3.5 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_10px_#00f2fe]"></span>
+                            <div>
+                                <div id="diagramOverlayTitle" class="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                                    PIZARRA GEOMÉTRICA INTERACTIVA • ARRASTRA LOS CONTROLES EN LA FIGURA
+                                </div>
+                                <div id="diagramOverlaySub" class="text-xs sm:text-sm font-bold text-cyan-300">
+                                    Arrastra los puntos o controles directamente con el mouse o dedo para deformar la figura sin perder la propiedad
+                                </div>
+                            </div>
+                        </div>
+                        <span id="manipulationBadgeHint" class="text-xs font-black bg-cyan-950/90 text-cyan-300 border border-cyan-500/50 px-3 py-1 rounded-xl">
+                            <i class="fa-solid fa-arrows-up-down-left-right mr-1 text-yellow-400"></i> Manipulación Directa Activa
+                        </span>
+                    </div>
+
+                    <!-- Lienzo SVG Amplio con margen de seguridad para que nada se corte -->
+                    <div id="geometryViewportBox" class="relative flex-1 w-full flex items-center justify-center p-1 sm:p-2">
+                        <svg id="geometrySvgCanvas" viewBox="0 0 880 540" preserveAspectRatio="xMidYMid meet" class="w-full h-full max-h-[540px] select-none touch-none"></svg>
+                    </div>
+
+                    <!-- Barra inferior dentro de la pizarra: Comprobación Numérica en Tiempo Real -->
+                    <div class="px-4 py-3.5 bg-black/90 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 z-10">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-scale-balanced text-yellow-400 text-lg"></i>
+                            <span class="text-xs sm:text-sm font-black text-cyan-300 uppercase tracking-wider">
+                                COMPROBACIÓN DE PROPORCIONALIDAD EN VIVO:
+                            </span>
+                        </div>
+                        <div id="liveCanvasEquation" class="math-expr text-lg sm:text-2xl font-bold text-white">
+                            <!-- Ecuación en tiempo real -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL LATERAL INTEGRADO (DERECHA): COPILOTO + IDENTIFICACIÓN + LOS 2 EJEMPLOS INTERACTIVOS -->
+                <div class="lg:col-span-4 flex flex-col justify-between gap-3">
+
+                    <!-- Guía Didáctica Compacta con Robo-Profe 3D y Clave de Identificación -->
+                    <div class="bg-black/75 border border-slate-700 rounded-3xl p-4 flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="relative w-20 h-20 shrink-0 rounded-2xl bg-black border-2 border-cyan-400 shadow-[0_0_18px_rgba(0,242,254,0.3)] overflow-hidden cursor-grab active:cursor-grabbing" id="robotCanvasContainer" title="Arrastra el rostro 3D">
+                                <div class="absolute top-1 left-1.5 z-10 flex items-center gap-1 bg-black/80 px-1.5 py-0.5 rounded-full border border-cyan-400/50">
+                                    <span id="robotStatusDot" class="w-1.5 h-1.5 rounded-full bg-[#39ff14] animate-ping"></span>
+                                    <span id="robotMoodBadgeText" class="text-[9px] font-black text-cyan-300 uppercase">IA 3D</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-black text-cyan-300 uppercase tracking-wider">
+                                        ROBO-PROFE • GUÍA
+                                    </span>
+                                    <span id="studentProgressBadge" class="text-xs font-black text-[#39ff14] uppercase">
+                                        RETOS: 0 / 2
+                                    </span>
+                                </div>
+                                <div id="robotMessage" class="text-xs sm:text-sm font-bold text-slate-100 leading-snug bg-slate-900/90 p-3 rounded-xl border border-white/10">
+                                    ¡Arrastra los puntos de la figura al centro y observa cómo la razón geométrica se mantiene!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="identifyTipBanner" class="text-xs sm:text-sm font-medium text-slate-200 bg-slate-950/90 border border-cyan-500/30 rounded-xl px-3.5 py-2.5 leading-snug">
+                            <!-- Clave didáctica -->
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <button onclick="explainHowToIdentify()" class="gp-btn gp-btn-cyan px-3 py-2 text-xs gap-1 flex-1">
+                                <i class="fa-solid fa-magnifying-glass"></i> IDENTIFICAR
+                            </button>
+                            <button onclick="giveExampleHint()" class="gp-btn gp-btn-yellow px-3 py-2 text-xs gap-1 flex-1">
+                                <i class="fa-solid fa-lightbulb"></i> PISTA
+                            </button>
+                            <button onclick="autoSolveBothExamples()" class="gp-btn gp-btn-pink px-3 py-2 text-xs gap-1 flex-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> DEMO
+                            </button>
+                            <button onclick="resetCurrentExamples()" class="gp-btn gp-btn-slate px-3 py-2 text-xs" title="Limpiar respuestas">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CUADRO INTEGRADO DE EJEMPLOS A TRABAJAR -->
+                    <div class="flex-1 bg-black/75 border border-slate-700 rounded-3xl p-4 flex flex-col justify-between gap-3">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span class="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-ruler text-cyan-400"></i> EJEMPLOS DE APLICACIÓN
+                            </span>
+                            <span class="text-xs font-bold text-slate-300">Resuelve aquí mismo</span>
+                        </div>
+
+                        <!-- EJEMPLO 1 COMPACTO E INTEGRADO -->
+                        <div id="exampleCard1" class="bg-slate-900/95 border border-cyan-500/50 rounded-2xl p-3.5 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-cyan-950 text-cyan-300 border border-cyan-500/60 px-3 py-0.5 rounded-full font-black text-xs uppercase">
+                                    EJEMPLO 1
+                                </span>
+                                <button onclick="switchDiagramViewMode('EX1')" class="text-xs font-black text-cyan-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-eye"></i> Ver datos en figura
+                                </button>
+                            </div>
+                            <p id="ex1PromptText" class="text-sm font-bold text-slate-100 leading-snug"></p>
+                            <div id="ex1GivenBadges" class="hidden"></div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-black/70 border border-white/10 rounded-xl px-3.5 py-2.5">
+                                <div>
+                                    <div class="text-[11px] font-black text-slate-400 uppercase">PLANTEAMIENTO:</div>
+                                    <div id="ex1EquationPreview" class="math-expr text-base sm:text-lg font-bold text-cyan-300"></div>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <label for="inputEx1Answer" class="math-expr math-var text-base font-bold text-cyan-300">x =</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        id="inputEx1Answer"
+                                        placeholder="?"
+                                        onfocus="switchDiagramViewMode('EX1', true)"
+                                        oninput="validateExampleAnswer(1)"
+                                        class="student-input math-expr font-bold w-24 py-1.5 px-2.5 rounded-xl text-center text-lg"
+                                    />
+                                    <span id="ex1UnitSymbol" class="math-expr text-sm font-bold text-cyan-300">u</span>
+                                    <span id="statusEx1Badge" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400 text-xs shrink-0">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="ex1StepByStepBox" class="text-xs sm:text-sm text-slate-200 bg-slate-950/90 px-3 py-2 rounded-lg border border-white/10">
+                                Escribe el valor de <span class="math-expr math-var">x</span> para verificar.
+                            </div>
+                        </div>
+
+                        <!-- EJEMPLO 2 COMPACTO E INTEGRADO -->
+                        <div id="exampleCard2" class="bg-slate-900/95 border border-pink-500/50 rounded-2xl p-3.5 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-pink-950 text-pink-300 border border-pink-500/60 px-3 py-0.5 rounded-full font-black text-xs uppercase">
+                                    EJEMPLO 2
+                                </span>
+                                <button onclick="switchDiagramViewMode('EX2')" class="text-xs font-black text-pink-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-eye"></i> Ver datos en figura
+                                </button>
+                            </div>
+                            <p id="ex2PromptText" class="text-sm font-bold text-slate-100 leading-snug"></p>
+                            <div id="ex2GivenBadges" class="hidden"></div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-black/70 border border-white/10 rounded-xl px-3.5 py-2.5">
+                                <div>
+                                    <div class="text-[11px] font-black text-slate-400 uppercase">PLANTEAMIENTO:</div>
+                                    <div id="ex2EquationPreview" class="math-expr text-base sm:text-lg font-bold text-pink-300"></div>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <label for="inputEx2Answer" class="math-expr math-var text-base font-bold text-pink-400">x =</label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        id="inputEx2Answer"
+                                        placeholder="?"
+                                        onfocus="switchDiagramViewMode('EX2', true)"
+                                        oninput="validateExampleAnswer(2)"
+                                        class="student-input math-expr font-bold w-24 py-1.5 px-2.5 rounded-xl text-center text-lg"
+                                    />
+                                    <span id="ex2UnitSymbol" class="math-expr text-sm font-bold text-pink-400">u</span>
+                                    <span id="statusEx2Badge" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400 text-xs shrink-0">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="ex2StepByStepBox" class="text-xs sm:text-sm text-slate-200 bg-slate-950/90 px-3 py-2 rounded-lg border border-white/10">
+                                Escribe el valor de <span class="math-expr math-var">x</span> para verificar.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const THEOREMS_DATA = [
+            // ================= 1 AL 4: PROPORCIONALIDAD DE SEGMENTOS =================
+            {
+                id: 1,
+                blockNum: 1,
+                group: 'PROPORCIONALIDAD',
+                groupBadge: 'PROPORCIONALIDAD 1',
+                shortTitle: 'Teorema de Tales',
+                navTag: 'Tales',
+                conditionBadge: 'Si L₁ // L₂ // L₃',
+                borderColor: 'border-cyan-400',
+                formulaHTML: `Si <span class="math-var">L</span>₁ // <span class="math-var">L</span>₂ // <span class="math-var">L</span>₃ &nbsp;→&nbsp; <span class="latex-frac"><span class="num text-cyan-300">AB</span><span class="den text-yellow-300">BC</span></span> = <span class="latex-frac"><span class="num text-pink-400">MN</span><span class="den text-[#39ff14]">NP</span></span>`,
+                identifyTip: `<b class="text-cyan-300">¿CÓMO IDENTIFICARLO?</b> Busca <b>3 o más rectas paralelas</b> (<span class="math-expr">L₁ // L₂ // L₃</span>) cortadas por dos rectas secantes. Los segmentos frente a frente forman proporción directa.`,
+                robotIntro: `¡En el <b>Teorema de Tales</b> las rectas <span class="math-expr">L₁, L₂, L₃</span> son paralelas! Divide los dos tramos de la izquierda (<span class="math-expr">AB / BC</span>) e iguálalos a los dos tramos de la derecha (<span class="math-expr">MN / NP</span>).`,
+                elements: [
+                    { key: 'PAR', label: 'Rectas Paralelas L₁//L₂//L₃', color: '#94a3b8', desc: 'Las 3 rectas horizontales paralelas garantizan que los cortes sean proporcionales.' },
+                    { key: 'AB', label: 'Tramo Sup. Izq. (AB)', color: '#00f2fe', desc: 'Numerador izquierdo: segmento entre L₁ y L₂ sobre la primera secante.' },
+                    { key: 'BC', label: 'Tramo Inf. Izq. (BC)', color: '#facc15', desc: 'Denominador izquierdo: segmento entre L₂ y L₃ sobre la primera secante.' },
+                    { key: 'MN', label: 'Tramo Sup. Der. (MN)', color: '#fe0979', desc: 'Numerador derecho: segmento homólogo a AB en la segunda secante.' },
+                    { key: 'NP', label: 'Tramo Inf. Der. (NP)', color: '#39ff14', desc: 'Denominador derecho: segmento homólogo a BC en la segunda secante.' }
+                ],
+                sliders: [
+                    { key: 'ab', label: 'Segmento AB', min: 3, max: 12, step: 1, val: 6, color: '#00f2fe' },
+                    { key: 'bc', label: 'Segmento BC', min: 3, max: 12, step: 1, val: 9, color: '#facc15' },
+                    { key: 'mn', label: 'Segmento MN', min: 4, max: 16, step: 1, val: 8, color: '#fe0979' }
+                ],
+                examples: [
+                    {
+                        prompt: `Si <span class="math-expr">L₁ // L₂ // L₃</span>, además <span class="math-expr">AB = 6</span>, <span class="math-expr">BC = 9</span> y <span class="math-expr">MN = 8</span>, calcula la medida del segmento <span class="math-expr">NP = <span class="math-var">x</span></span>:`,
+                        given: [`L₁ // L₂ // L₃`, `AB = 6`, `BC = 9`, `MN = 8`, `NP = x`],
+                        diagramLabels: { ab: '6', bc: '9', mn: '8', np: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">6</span><span class="den text-yellow-300">9</span></span> = <span class="latex-frac"><span class="num text-pink-400">8</span><span class="den text-[#39ff14]"><span class="math-var">x</span></span></span>`,
+                        answer: 12,
+                        unit: 'u',
+                        stepsHTML: `6<span class="math-var">x</span> = 9 · 8 = 72 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">72</span><span class="den">6</span></span> = <b class="text-[#39ff14]">12</b>`
+                    },
+                    {
+                        prompt: `Si <span class="math-expr">L₁ // L₂ // L₃</span>, con <span class="math-expr">AB = <span class="math-var">x</span></span>, <span class="math-expr">BC = 10</span>, <span class="math-expr">MN = 9</span> y <span class="math-expr">NP = 15</span>, calcula el valor de <span class="math-expr math-var">x</span>:`,
+                        given: [`AB = x`, `BC = 10`, `MN = 9`, `NP = 15`],
+                        diagramLabels: { ab: 'x', bc: '10', mn: '9', np: '15' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">x</span></span><span class="den text-yellow-300">10</span></span> = <span class="latex-frac"><span class="num text-pink-400">9</span><span class="den text-[#39ff14]">15</span></span>`,
+                        answer: 6,
+                        unit: 'u',
+                        stepsHTML: `15<span class="math-var">x</span> = 90 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">90</span><span class="den">15</span></span> = <b class="text-[#39ff14]">6</b>`
+                    }
+                ]
+            },
+            {
+                id: 2,
+                blockNum: 2,
+                group: 'PROPORCIONALIDAD',
+                groupBadge: 'PROPORCIONALIDAD 2',
+                shortTitle: 'Corolario de Tales',
+                navTag: 'Corolario',
+                conditionBadge: 'Si MN // AC',
+                borderColor: 'border-yellow-400',
+                formulaHTML: `Si <span class="overline-seg">MN</span> // <span class="overline-seg">AC</span> &nbsp;→&nbsp; <span class="latex-frac"><span class="num text-cyan-300">BM</span><span class="den text-yellow-300">MA</span></span> = <span class="latex-frac"><span class="num text-pink-400">BN</span><span class="den text-[#39ff14]">NC</span></span>`,
+                identifyTip: `<b class="text-yellow-300">¿CÓMO IDENTIFICARLO?</b> Es un triángulo con una <b>línea interna paralela a la base</b> (<span class="math-expr">MN // AC</span>). Divide los segmentos laterales de arriba entre los de abajo.`,
+                robotIntro: `¡El <b>Corolario de Tales</b> es Tales dentro de un triángulo! Como <span class="math-expr">MN // AC</span>, se cumple que <span class="math-expr">BM / MA = BN / NC</span>.`,
+                elements: [
+                    { key: 'PAR', label: 'Paralelas MN // AC', color: '#f8fafc', desc: 'La recta MN es paralela a la base AC del triángulo.' },
+                    { key: 'BM', label: 'Superior Izq. (BM)', color: '#00f2fe', desc: 'Segmento superior del lado izquierdo, desde el vértice B hasta M.' },
+                    { key: 'MA', label: 'Inferior Izq. (MA)', color: '#facc15', desc: 'Segmento inferior del lado izquierdo, desde M hasta A.' },
+                    { key: 'BN', label: 'Superior Der. (BN)', color: '#fe0979', desc: 'Segmento superior del lado derecho, desde el vértice B hasta N.' },
+                    { key: 'NC', label: 'Inferior Der. (NC)', color: '#39ff14', desc: 'Segmento inferior del lado derecho, desde N hasta C.' }
+                ],
+                sliders: [
+                    { key: 'bm', label: 'Segmento BM', min: 3, max: 12, step: 1, val: 6, color: '#00f2fe' },
+                    { key: 'ma', label: 'Segmento MA', min: 3, max: 12, step: 1, val: 4, color: '#facc15' },
+                    { key: 'bn', label: 'Segmento BN', min: 3, max: 15, step: 1, val: 9, color: '#fe0979' }
+                ],
+                examples: [
+                    {
+                        prompt: `En el triángulo <span class="math-expr">ABC</span>, si <span class="math-expr">MN // AC</span>, además <span class="math-expr">BM = 8</span>, <span class="math-expr">MA = 4</span> y <span class="math-expr">BN = 10</span>, calcula <span class="math-expr">NC = <span class="math-var">x</span></span>:`,
+                        given: [`MN // AC`, `BM = 8`, `MA = 4`, `BN = 10`, `NC = x`],
+                        diagramLabels: { bm: '8', ma: '4', bn: '10', nc: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">8</span><span class="den text-yellow-300">4</span></span> = <span class="latex-frac"><span class="num text-pink-400">10</span><span class="den text-[#39ff14]"><span class="math-var">x</span></span></span>`,
+                        answer: 5,
+                        unit: 'u',
+                        stepsHTML: `8<span class="math-var">x</span> = 40 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">40</span><span class="den">8</span></span> = <b class="text-[#39ff14]">5</b>`
+                    },
+                    {
+                        prompt: `Si <span class="math-expr">MN // AC</span>, con <span class="math-expr">BM = <span class="math-var">x</span></span>, <span class="math-expr">MA = 6</span>, <span class="math-expr">BN = 12</span> y <span class="math-expr">NC = 8</span>, calcula el valor de <span class="math-expr math-var">x</span>:`,
+                        given: [`MN // AC`, `BM = x`, `MA = 6`, `BN = 12`, `NC = 8`],
+                        diagramLabels: { bm: 'x', ma: '6', bn: '12', nc: '8' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">x</span></span><span class="den text-yellow-300">6</span></span> = <span class="latex-frac"><span class="num text-pink-400">12</span><span class="den text-[#39ff14]">8</span></span>`,
+                        answer: 9,
+                        unit: 'u',
+                        stepsHTML: `8<span class="math-var">x</span> = 72 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">72</span><span class="den">8</span></span> = <b class="text-[#39ff14]">9</b>`
+                    }
+                ]
+            },
+            {
+                id: 3,
+                blockNum: 3,
+                group: 'PROPORCIONALIDAD',
+                groupBadge: 'PROPORCIONALIDAD 3',
+                shortTitle: 'Teorema de la Bisectriz Interior',
+                navTag: 'Bisectriz Int.',
+                conditionBadge: 'BD Bisectriz (α y α)',
+                borderColor: 'border-green-400',
+                formulaHTML: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">a</span></span><span class="den text-pink-400"><span class="math-var">b</span></span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">m</span></span><span class="den text-[#39ff14]"><span class="math-var">n</span></span></span> &nbsp;<span class="text-xs text-slate-300">(<span class="math-var">m</span> = AD izq., <span class="math-var">n</span> = DC der.)</span>`,
+                identifyTip: `<b class="text-[#39ff14]">¿CÓMO IDENTIFICARLO?</b> Un rayo <span class="math-expr">BD</span> divide al ángulo interior <span class="math-expr">B</span> en <b>dos ángulos iguales (<span class="math-expr">α, α</span>)</b>. ¡Lado izquierdo (<span class="math-expr">a</span>) es a su proyección (<span class="math-expr">m</span>) como lado derecho (<span class="math-expr">b</span>) es a la suya (<span class="math-expr">n</span>)!`,
+                robotIntro: `¡Mira los dos ángulos iguales <span class="math-expr">α</span> y <span class="math-expr">α</span> en <span class="math-expr">B</span>! La bisectriz interior <span class="math-expr">BD</span> divide la base en <span class="math-expr">m</span> y <span class="math-expr">n</span> proporcionales a los lados <span class="math-expr">a</span> y <span class="math-expr">b</span>: <span class="math-expr">a / b = m / n</span>.`,
+                elements: [
+                    { key: 'BIS', label: 'Bisectriz Interior BD (α, α)', color: '#ffffff', desc: 'Rayo interior que divide al ángulo B en dos partes iguales α y α.' },
+                    { key: 'SIDE_A', label: 'Lado Izquierdo (a)', color: '#00f2fe', desc: 'Lado AB adyacente al segmento m de la base.' },
+                    { key: 'SIDE_B', label: 'Lado Derecho (b)', color: '#fe0979', desc: 'Lado BC adyacente al segmento n de la base.' },
+                    { key: 'SEG_M', label: 'Base Izq. (m = AD)', color: '#facc15', desc: 'Segmento determinado en la base del lado de a.' },
+                    { key: 'SEG_N', label: 'Base Der. (n = DC)', color: '#39ff14', desc: 'Segmento determinado en la base del lado de b.' }
+                ],
+                sliders: [
+                    { key: 'a', label: 'Lado a (AB)', min: 6, max: 16, step: 1, val: 10, color: '#00f2fe' },
+                    { key: 'b', label: 'Lado b (BC)', min: 6, max: 18, step: 1, val: 15, color: '#fe0979' },
+                    { key: 'm', label: 'Base m (AD)', min: 3, max: 12, step: 1, val: 6, color: '#facc15' }
+                ],
+                examples: [
+                    {
+                        prompt: `En el triángulo <span class="math-expr">ABC</span>, <span class="math-expr">BD</span> es bisectriz interior (<span class="math-expr">α, α</span>). Si <span class="math-expr"><span class="math-var">a</span> = 10</span>, <span class="math-expr"><span class="math-var">b</span> = 15</span> y <span class="math-expr"><span class="math-var">m</span> = 6</span>, calcula <span class="math-expr"><span class="math-var">n</span> = <span class="math-var">x</span></span>:`,
+                        given: [`BD: Bisectriz interior`, `a = 10`, `b = 15`, `m = 6`, `n = x`],
+                        diagramLabels: { a: '10', b: '15', m: '6', n: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">10</span><span class="den text-pink-400">15</span></span> = <span class="latex-frac"><span class="num text-yellow-300">6</span><span class="den text-[#39ff14]"><span class="math-var">x</span></span></span>`,
+                        answer: 9,
+                        unit: 'u',
+                        stepsHTML: `10<span class="math-var">x</span> = 15 · 6 = 90 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">90</span><span class="den">10</span></span> = <b class="text-[#39ff14]">9</b>`
+                    },
+                    {
+                        prompt: `En el triángulo <span class="math-expr">ABC</span> con bisectriz interior <span class="math-expr">BD</span>, si <span class="math-expr"><span class="math-var">a</span> = <span class="math-var">x</span></span>, <span class="math-expr"><span class="math-var">b</span> = 12</span>, <span class="math-expr"><span class="math-var">m</span> = 6</span> y <span class="math-expr"><span class="math-var">n</span> = 8</span>, calcula <span class="math-expr math-var">x</span>:`,
+                        given: [`a = x`, `b = 12`, `m = 6`, `n = 8`],
+                        diagramLabels: { a: 'x', b: '12', m: '6', n: '8' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">x</span></span><span class="den text-pink-400">12</span></span> = <span class="latex-frac"><span class="num text-yellow-300">6</span><span class="den text-[#39ff14]">8</span></span>`,
+                        answer: 9,
+                        unit: 'u',
+                        stepsHTML: `8<span class="math-var">x</span> = 72 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">72</span><span class="den">8</span></span> = <b class="text-[#39ff14]">9</b>`
+                    }
+                ]
+            },
+            {
+                id: 4,
+                blockNum: 4,
+                group: 'PROPORCIONALIDAD',
+                groupBadge: 'PROPORCIONALIDAD 4',
+                shortTitle: 'Teorema de la Bisectriz Exterior',
+                navTag: 'Bisectriz Ext.',
+                conditionBadge: 'BE Bisectriz Ext. (a > b)',
+                borderColor: 'border-orange-500',
+                formulaHTML: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">a</span></span><span class="den text-pink-400"><span class="math-var">b</span></span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">m</span></span><span class="den text-[#39ff14]"><span class="math-var">n</span></span></span> &nbsp;<span class="text-xs text-slate-300">(<span class="math-var">m</span> = AE total, <span class="math-var">n</span> = CE ext.)</span>`,
+                identifyTip: `<b class="text-orange-400">¡CUIDADO AL DIFERENCIARLO!</b> La bisectriz <span class="math-expr">BE</span> cae <b>fuera del triángulo</b> (<span class="math-expr">β, β</span>). Recuerda: <span class="math-expr text-yellow-300">m = AE</span> es <b>TODO el segmento largo</b> desde <span class="math-expr">A</span> hasta <span class="math-expr">E</span>, y <span class="math-expr text-[#39ff14]">n = CE</span> es solo la parte externa.`,
+                robotIntro: `¡Atención aquí! En la <b>Bisectriz Exterior</b>, <span class="math-expr text-cyan-300">a</span> (lado mayor) va con <span class="math-expr text-yellow-300">m</span> (que es <b>todo AE</b>), y <span class="math-expr text-pink-400">b</span> (lado menor) va con <span class="math-expr text-[#39ff14]">n</span> (solo el tramo externo <span class="math-expr">CE</span>).`,
+                elements: [
+                    { key: 'BIS', label: 'Bisectriz Exterior BE (β, β)', color: '#ffffff', desc: 'Divide el ángulo exterior en B en dos ángulos iguales β y β, cortando la prolongación en E.' },
+                    { key: 'SIDE_A', label: 'Lado Mayor (a = AB)', color: '#00f2fe', desc: 'Lado mayor del triángulo (a > b), parte desde A.' },
+                    { key: 'SIDE_B', label: 'Lado Menor (b = BC)', color: '#fe0979', desc: 'Lado menor del triángulo, parte desde C.' },
+                    { key: 'SEG_M', label: 'Total Largo (m = AE)', color: '#facc15', desc: '¡MUY IMPORTANTE! m mide desde el primer vértice A hasta el punto lejano E.' },
+                    { key: 'SEG_N', label: 'Parte Externa (n = CE)', color: '#39ff14', desc: 'n mide únicamente desde el vértice C hasta el punto exterior E.' }
+                ],
+                sliders: [
+                    { key: 'a', label: 'Lado Mayor a', min: 8, max: 18, step: 1, val: 12, color: '#00f2fe' },
+                    { key: 'b', label: 'Lado Menor b', min: 4, max: 10, step: 1, val: 6, color: '#fe0979' },
+                    { key: 'n', label: 'Tramo Ext. n (CE)', min: 4, max: 12, step: 1, val: 8, color: '#39ff14' }
+                ],
+                examples: [
+                    {
+                        prompt: `En el triángulo <span class="math-expr">ABC</span>, <span class="math-expr">BE</span> es bisectriz exterior (<span class="math-expr">β, β</span>). Si <span class="math-expr"><span class="math-var">a</span> = 12</span>, <span class="math-expr"><span class="math-var">b</span> = 8</span> y el total <span class="math-expr"><span class="math-var">m</span> = AE = 15</span>, calcula <span class="math-expr"><span class="math-var">n</span> = CE = <span class="math-var">x</span></span>:`,
+                        given: [`BE: Bisectriz exterior`, `a = 12`, `b = 8`, `m (AE) = 15`, `n (CE) = x`],
+                        diagramLabels: { a: '12', b: '8', m: '15', n: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">12</span><span class="den text-pink-400">8</span></span> = <span class="latex-frac"><span class="num text-yellow-300">15</span><span class="den text-[#39ff14]"><span class="math-var">x</span></span></span>`,
+                        answer: 10,
+                        unit: 'u',
+                        stepsHTML: `12<span class="math-var">x</span> = 8 · 15 = 120 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">120</span><span class="den">12</span></span> = <b class="text-[#39ff14]">10</b>`
+                    },
+                    {
+                        prompt: `Con bisectriz exterior <span class="math-expr">BE</span>, si <span class="math-expr"><span class="math-var">a</span> = 15</span>, <span class="math-expr"><span class="math-var">b</span> = 9</span> y la parte externa mide <span class="math-expr"><span class="math-var">n</span> = CE = 12</span>, calcula el segmento total <span class="math-expr"><span class="math-var">m</span> = AE = <span class="math-var">x</span></span>:`,
+                        given: [`a = 15`, `b = 9`, `m (AE) = x`, `n (CE) = 12`],
+                        diagramLabels: { a: '15', b: '9', m: 'x', n: '12' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">15</span><span class="den text-pink-400">9</span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">x</span></span><span class="den text-[#39ff14]">12</span></span>`,
+                        answer: 20,
+                        unit: 'u',
+                        stepsHTML: `9<span class="math-var">x</span> = 15 · 12 = 180 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">180</span><span class="den">9</span></span> = <b class="text-[#39ff14]">20</b>`
+                    }
+                ]
+            },
+            // ================= 1 AL 3: CRITERIOS DE SEMEJANZA DE TRIÁNGULOS =================
+            {
+                id: 5,
+                blockNum: 1,
+                group: 'SEMEJANZA',
+                groupBadge: 'CRITERIO DE SEMEJANZA 1',
+                shortTitle: 'Primer Criterio: Ángulo – Ángulo (AA)',
+                navTag: 'Criterio AA',
+                conditionBadge: '2 Ángulos Iguales (α y θ)',
+                borderColor: 'border-pink-500',
+                formulaHTML: `Si ∠A ≅ ∠M (<span class="math-var">α</span>) y ∠C ≅ ∠P (<span class="math-var">θ</span>) &nbsp;→&nbsp; <span class="text-[#39ff14]">ΔABC ∼ ΔMNP</span>`,
+                identifyTip: `<b class="text-pink-400">¿CÓMO APLICARLO?</b> Si dos triángulos tienen <b>2 pares de ángulos interiores iguales (<span class="math-expr">α</span> y <span class="math-expr">θ</span>)</b>, ¡son semejantes! Para armar la proporción, divide los <b>lados que se oponen al mismo ángulo</b>.`,
+                robotIntro: `¡En el <b>Criterio AA</b>, busca qué lado está frente a <span class="math-expr">α</span> en el triángulo grande y divídelo entre el lado que está frente a <span class="math-expr">α</span> en el pequeño!`,
+                elements: [
+                    { key: 'ANG_ALPHA', label: 'Ángulo α (en A y M)', color: '#00f2fe', desc: 'Primer par de ángulos congruentes: ∠A = ∠M = α. Sus lados opuestos son BC y NP.' },
+                    { key: 'ANG_THETA', label: 'Ángulo θ (en C y P)', color: '#facc15', desc: 'Segundo par de ángulos congruentes: ∠C = ∠P = θ. Sus lados opuestos son AB y MN.' },
+                    { key: 'OPP_ALPHA', label: 'Lados opuestos a α (BC y NP)', color: '#fe0979', desc: 'Lados homólogos que miran al ángulo α en cada triángulo.' },
+                    { key: 'OPP_THETA', label: 'Lados opuestos a θ (AB y MN)', color: '#39ff14', desc: 'Lados homólogos que miran al ángulo θ en cada triángulo.' }
+                ],
+                sliders: [
+                    { key: 'ab', label: 'Lado AB (opuesto a θ)', min: 6, max: 18, step: 2, val: 12, color: '#39ff14' },
+                    { key: 'bc', label: 'Lado BC (opuesto a α)', min: 6, max: 18, step: 2, val: 16, color: '#fe0979' },
+                    { key: 'k', label: 'Razón k (Grande/Pequeño)', min: 1.5, max: 3, step: 0.5, val: 2, color: '#00f2fe' }
+                ],
+                examples: [
+                    {
+                        prompt: `En <span class="math-expr">ΔABC ∼ ΔMNP</span> (por criterio AA con ángulos <span class="math-expr">α</span> y <span class="math-expr">θ</span>): frente a <span class="math-expr">θ</span> están <span class="math-expr">AB = 12</span> y <span class="math-expr">MN = 4</span>; frente a <span class="math-expr">α</span> están <span class="math-expr">BC = 15</span> y <span class="math-expr">NP = <span class="math-var">x</span></span>. Halla <span class="math-expr math-var">x</span>:`,
+                        given: [`ΔABC ∼ ΔMNP (AA)`, `AB = 12`, `MN = 4`, `BC = 15`, `NP = x`],
+                        diagramLabels: { ab: '12', mn: '4', bc: '15', np: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-[#39ff14]">12</span><span class="den text-[#39ff14]">4</span></span> = <span class="latex-frac"><span class="num text-pink-400">15</span><span class="den text-pink-400"><span class="math-var">x</span></span></span>`,
+                        answer: 5,
+                        unit: 'u',
+                        stepsHTML: `12<span class="math-var">x</span> = 60 &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">60</span><span class="den">12</span></span> = <b class="text-[#39ff14]">5</b>`
+                    },
+                    {
+                        prompt: `En <span class="math-expr">ΔABC ∼ ΔMNP</span> (criterio AA): frente a <span class="math-expr">θ</span> están <span class="math-expr">AB = <span class="math-var">x</span></span> y <span class="math-expr">MN = 6</span>; frente a <span class="math-expr">α</span> están <span class="math-expr">BC = 14</span> y <span class="math-expr">NP = 7</span>. Calcula <span class="math-expr math-var">x</span>:`,
+                        given: [`AB = x`, `MN = 6`, `BC = 14`, `NP = 7`],
+                        diagramLabels: { ab: 'x', mn: '6', bc: '14', np: '7' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-[#39ff14]"><span class="math-var">x</span></span><span class="den text-[#39ff14]">6</span></span> = <span class="latex-frac"><span class="num text-pink-400">14</span><span class="den text-pink-400">7</span></span>`,
+                        answer: 12,
+                        unit: 'u',
+                        stepsHTML: `<span class="latex-frac"><span class="num"><span class="math-var">x</span></span><span class="den">6</span></span> = 2 &nbsp;⇒&nbsp; <span class="math-var">x</span> = 6 · 2 = <b class="text-[#39ff14]">12</b>`
+                    }
+                ]
+            },
+            {
+                id: 6,
+                blockNum: 2,
+                group: 'SEMEJANZA',
+                groupBadge: 'CRITERIO DE SEMEJANZA 2',
+                shortTitle: 'Segundo Criterio: Lado – Ángulo – Lado (LAL)',
+                navTag: 'Criterio LAL',
+                conditionBadge: 'pk / p = nk / n y ∠α igual',
+                borderColor: 'border-purple-500',
+                formulaHTML: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">pk</span></span><span class="den text-cyan-300"><span class="math-var">p</span></span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">nk</span></span><span class="den text-yellow-300"><span class="math-var">n</span></span></span> = <span class="math-var">k</span> &nbsp;(con ∠<span class="math-var">α</span> entre ellos) &nbsp;→&nbsp; <span class="text-[#39ff14]">ΔABC ∼ ΔMNP</span>`,
+                identifyTip: `<b class="text-purple-300">¿CÓMO IDENTIFICARLO?</b> Tienes <b>dos lados proporcionales</b> (<span class="math-expr">pk, nk</span> y <span class="math-expr">p, n</span>) y el <b>ángulo <span class="math-expr">α</span> comprendido justo en medio</b> de esos dos lados.`,
+                robotIntro: `¡En el <b>Criterio LAL</b> como en tu esquema: <span class="math-expr">AB = pk</span> con <span class="math-expr">MN = p</span>, la base <span class="math-expr">AC = nk</span> con <span class="math-expr">MP = n</span>, y entre ambos lados está el mismo ángulo <span class="math-expr">α</span>!`,
+                elements: [
+                    { key: 'SIDE_P', label: 'Lados Homólogos Izq. (pk y p)', color: '#00f2fe', desc: 'Primer par de lados proporcionales: AB = pk y MN = p.' },
+                    { key: 'ANG_ALPHA', label: 'Ángulo Comprendido (α)', color: '#fe0979', desc: '¡DEBE ESTAR EN MEDIO! El ángulo α está entre los lados p y n.' },
+                    { key: 'SIDE_N', label: 'Bases Homólogas (nk y n)', color: '#facc15', desc: 'Segundo par de lados proporcionales: AC = nk y MP = n.' }
+                ],
+                sliders: [
+                    { key: 'p', label: 'Lado base p (MN)', min: 3, max: 8, step: 1, val: 4, color: '#00f2fe' },
+                    { key: 'n', label: 'Base n (MP)', min: 4, max: 9, step: 1, val: 5, color: '#facc15' },
+                    { key: 'k', label: 'Constante k', min: 2, max: 4, step: 1, val: 3, color: '#39ff14' }
+                ],
+                examples: [
+                    {
+                        prompt: `En los triángulos semejantes por criterio LAL (con ángulo <span class="math-expr">α</span> entre los lados), si <span class="math-expr">p = 4</span>, <span class="math-expr">n = 5</span>, <span class="math-expr">pk = 12</span> y <span class="math-expr">nk = <span class="math-var">x</span></span>, calcula <span class="math-expr math-var">x</span>:`,
+                        given: [`∠A = ∠M = α`, `AB (pk) = 12`, `MN (p) = 4`, `AC (nk) = x`, `MP (n) = 5`],
+                        diagramLabels: { pk: '12', p: '4', nk: 'x', n: '5' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">12</span><span class="den text-cyan-300">4</span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">x</span></span><span class="den text-yellow-300">5</span></span> &nbsp;(k = 3)`,
+                        answer: 15,
+                        unit: 'u',
+                        stepsHTML: `k = <span class="latex-frac"><span class="num">12</span><span class="den">4</span></span> = 3 &nbsp;⇒&nbsp; <span class="math-var">x</span> = 5 · 3 = <b class="text-[#39ff14]">15</b>`
+                    },
+                    {
+                        prompt: `Por criterio LAL, ambos triángulos comparten el ángulo <span class="math-expr">α</span>. Si <span class="math-expr">AB = 14</span>, <span class="math-expr">MN = 7</span> y <span class="math-expr">AC = 18</span>, calcula la base menor <span class="math-expr">MP = <span class="math-var">x</span></span>:`,
+                        given: [`∠A = ∠M = α`, `AB = 14`, `MN = 7`, `AC = 18`, `MP = x`],
+                        diagramLabels: { pk: '14', p: '7', nk: '18', n: 'x' },
+                        equationPreview: `<span class="latex-frac"><span class="num text-cyan-300">14</span><span class="den text-cyan-300">7</span></span> = <span class="latex-frac"><span class="num text-yellow-300">18</span><span class="den text-yellow-300"><span class="math-var">x</span></span></span> &nbsp;(k = 2)`,
+                        answer: 9,
+                        unit: 'u',
+                        stepsHTML: `2 = <span class="latex-frac"><span class="num">18</span><span class="den"><span class="math-var">x</span></span></span> &nbsp;⇒&nbsp; <span class="math-var">x</span> = <span class="latex-frac"><span class="num">18</span><span class="den">2</span></span> = <b class="text-[#39ff14]">9</b>`
+                    }
+                ]
+            },
+            {
+                id: 7,
+                blockNum: 3,
+                group: 'SEMEJANZA',
+                groupBadge: 'CRITERIO DE SEMEJANZA 3',
+                shortTitle: 'Tercer Criterio: Lado – Lado – Lado (LLL)',
+                navTag: 'Criterio LLL',
+                conditionBadge: '3 Lados Proporcionales (k)',
+                borderColor: 'border-cyan-400',
+                formulaHTML: `<span class="latex-frac"><span class="num text-cyan-300"><span class="math-var">pk</span></span><span class="den text-cyan-300"><span class="math-var">p</span></span></span> = <span class="latex-frac"><span class="num text-pink-400"><span class="math-var">mk</span></span><span class="den text-pink-400"><span class="math-var">m</span></span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">nk</span></span><span class="den text-yellow-300"><span class="math-var">n</span></span></span> = <span class="math-var">k</span> &nbsp;→&nbsp; <span class="text-[#39ff14]">ΔABC ∼ ΔMNP</span>`,
+                identifyTip: `<b class="text-cyan-300">¿CÓMO IDENTIFICARLO?</b> Los <b>tres lados de <span class="math-expr">ΔABC</span></b> (<span class="math-expr">pk, mk, nk</span>) son proporcionales a los <b>tres lados de <span class="math-expr">ΔMNP</span></b> (<span class="math-expr">p, m, n</span>) con la misma constante <span class="math-expr math-var">k</span>.`,
+                robotIntro: `¡En el <b>Criterio LLL</b> los 3 lados homólogos están multiplicados por la misma constante <span class="math-expr math-var">k</span>: <span class="math-expr">(pk, mk, nk)</span> frente a <span class="math-expr">(p, m, n)</span>!`,
+                elements: [
+                    { key: 'SIDE_P', label: 'Par Izquierdo (pk y p)', color: '#00f2fe', desc: 'Lados izquierdos homólogos: AB = pk y MN = p.' },
+                    { key: 'SIDE_M', label: 'Par Derecho (mk y m)', color: '#fe0979', desc: 'Lados derechos homólogos: BC = mk y NP = m.' },
+                    { key: 'SIDE_N', label: 'Par de Bases (nk y n)', color: '#facc15', desc: 'Bases homólogas: AC = nk y MP = n.' }
+                ],
+                sliders: [
+                    { key: 'p', label: 'Lado p (MN)', min: 3, max: 7, step: 1, val: 3, color: '#00f2fe' },
+                    { key: 'm', label: 'Lado m (NP)', min: 3, max: 7, step: 1, val: 4, color: '#fe0979' },
+                    { key: 'n', label: 'Base n (MP)', min: 4, max: 8, step: 1, val: 5, color: '#facc15' },
+                    { key: 'k', label: 'Constante k', min: 2, max: 4, step: 1, val: 2, color: '#39ff14' }
+                ],
+                examples: [
+                    {
+                        prompt: `Los lados de <span class="math-expr">ΔMNP</span> miden <span class="math-expr">p = 3</span>, <span class="math-expr">m = 4</span> y <span class="math-expr">n = 6</span>. En el semejante <span class="math-expr">ΔABC</span>, <span class="math-expr">AB = 9</span>, <span class="math-expr">BC = 12</span> y <span class="math-expr">AC = <span class="math-var">x</span></span>. Calcula <span class="math-expr math-var">x</span>:`,
+                        given: [`p = 3, m = 4, n = 6`, `pk = 9, mk = 12`, `nk = x`],
+                        diagramLabels: { pk: '9', p: '3', mk: '12', m: '4', nk: 'x', n: '6' },
+                        equationPreview: `k = <span class="latex-frac"><span class="num text-cyan-300">9</span><span class="den text-cyan-300">3</span></span> = <span class="latex-frac"><span class="num text-pink-400">12</span><span class="den text-pink-400">4</span></span> = <span class="latex-frac"><span class="num text-yellow-300"><span class="math-var">x</span></span><span class="den text-yellow-300">6</span></span> = 3`,
+                        answer: 18,
+                        unit: 'u',
+                        stepsHTML: `Constante <span class="math-var">k</span> = 3 &nbsp;⇒&nbsp; <span class="math-var">x</span> = 6 · 3 = <b class="text-[#39ff14]">18</b>`
+                    },
+                    {
+                        prompt: `Si <span class="math-expr">ΔABC ∼ ΔMNP</span> por criterio LLL, con <span class="math-expr">pk = 20</span>, <span class="math-expr">p = 5</span>, <span class="math-expr">nk = 24</span>, <span class="math-expr">n = 6</span> y <span class="math-expr">m = 4</span>, halla <span class="math-expr">mk = <span class="math-var">x</span></span>:`,
+                        given: [`pk = 20, p = 5`, `nk = 24, n = 6`, `mk = x, m = 4`],
+                        diagramLabels: { pk: '20', p: '5', mk: 'x', m: '4', nk: '24', n: '6' },
+                        equationPreview: `k = <span class="latex-frac"><span class="num text-cyan-300">20</span><span class="den text-cyan-300">5</span></span> = <span class="latex-frac"><span class="num text-pink-400"><span class="math-var">x</span></span><span class="den text-pink-400">4</span></span> = 4`,
+                        answer: 16,
+                        unit: 'u',
+                        stepsHTML: `Constante <span class="math-var">k</span> = 4 &nbsp;⇒&nbsp; <span class="math-var">x</span> = 4 · 4 = <b class="text-[#39ff14]">16</b>`
+                    }
+                ]
+            }
+        ];
+
+        let currentTheoremIdx = 0;
+        let currentDiagramMode = 'EXPLORE'; // 'EXPLORE', 'EX1', 'EX2'
+        let activeHighlightKey = 'ALL';
+        let sliderValues = {};
+        let solvedState = { ex1: false, ex2: false };
+        let demoTimers = [];
+
+        // ================= ESTADO DE GEOMETRÍA MANIPULABLE POR CADA PROPIEDAD =================
+        const DEFAULT_GEO_STATE = {
+            // 1. Teorema de Tales: 3 paralelas (se mueven juntas con P_GROUP e inclinan con P_TILT, y L2 ajusta la división) + 2 secantes independientes
+            1: {
+                P_GROUP: { x: 140, y: 110 }, // Control maestro: mueve las 3 rectas paralelas a la vez
+                P_TILT: { x: 740, y: 110 },  // Control de dirección: inclina las 3 rectas paralelas simultáneamente
+                L2_RATIO: 0.44,              // Posición relativa de L2 entre L1 y L3
+                SPAN_L1_L3: 320,             // Separación total entre L1 y L3
+                S1_TOP: { x: 315, y: 55 },   // Recta secante 1 (arriba)
+                S1_BOT: { x: 205, y: 485 },  // Recta secante 1 (abajo)
+                S2_TOP: { x: 525, y: 55 },   // Recta secante 2 (arriba)
+                S2_BOT: { x: 665, y: 485 }   // Recta secante 2 (abajo)
+            },
+            // 2. Corolario de Tales: Vértices A, B, C manipulables + control de la paralela MN
+            2: {
+                B: { x: 430, y: 75 },
+                A: { x: 175, y: 435 },
+                C: { x: 695, y: 435 },
+                MN_HANDLE: { t: 0.56 } // Control deslizable sobre la paralela MN
+            },
+            // 3. Bisectriz Interior: Vértices A, B, C manipulables; BD sigue siendo bisectriz exacta
+            3: {
+                B: { x: 385, y: 80 },
+                A: { x: 165, y: 425 },
+                C: { x: 695, y: 425 }
+            },
+            // 4. Bisectriz Exterior: Vértices A, B, C manipulables (con lado AB > BC para que BE corte la prolongación en E)
+            4: {
+                A: { x: 120, y: 365 },
+                B: { x: 390, y: 105 },
+                C: { x: 335, y: 365 }
+            },
+            // 5. Semejanza AA: Triángulo ABC manipulable + factor de escala en MNP
+            5: {
+                A: { x: 90, y: 410 },
+                B: { x: 255, y: 105 },
+                C: { x: 435, y: 410 },
+                SCALE_HANDLE: { x: 665, y: 205, k: 1.8 }
+            },
+            // 6. Semejanza LAL: Triángulo ABC manipulable + factor de escala k
+            6: {
+                A: { x: 90, y: 410 },
+                B: { x: 255, y: 105 },
+                C: { x: 435, y: 410 },
+                SCALE_HANDLE: { x: 665, y: 205, k: 2.0 }
+            },
+            // 7. Semejanza LLL: Triángulo ABC manipulable + factor de escala k
+            7: {
+                A: { x: 90, y: 410 },
+                B: { x: 255, y: 105 },
+                C: { x: 435, y: 410 },
+                SCALE_HANDLE: { x: 665, y: 205, k: 2.0 }
+            }
+        };
+
+        let geoState = {};
+        let activeDragHandle = null;
+        let dragStartPointer = { x: 0, y: 0 };
+        let dragSnapshot = null;
+
+        function cloneGeoState(id) {
+            return JSON.parse(JSON.stringify(DEFAULT_GEO_STATE[id] || DEFAULT_GEO_STATE[1]));
+        }
+
+        function resetGeometryToDefault() {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            geoState = cloneGeoState(th.id);
+            activeHighlightKey = 'ALL';
+            playSound('switch');
+            renderElementDetectorButtons();
+            switchDiagramViewMode('EXPLORE', true);
+        }
+
+        function dist2D(p1, p2) {
+            return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        }
+
+        function lineIntersection(p1, p2, p3, p4) {
+            const d = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+            if (Math.abs(d) < 1e-5) return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+            const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / d;
+            return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+        }
+
+        function angleBetweenDeg(p1, v, p2) {
+            const v1x = p1.x - v.x, v1y = p1.y - v.y;
+            const v2x = p2.x - v.x, v2y = p2.y - v.y;
+            const m1 = Math.hypot(v1x, v1y) || 1;
+            const m2 = Math.hypot(v2x, v2y) || 1;
+            const cos = Math.max(-1, Math.min(1, (v1x * v2x + v1y * v2y) / (m1 * m2)));
+            return Math.acos(cos) * (180 / Math.PI);
+        }
+
+        let audioEnabled = true;
+        let synth = null;
+        let polySynth = null;
+
+        async function ensureAudioReady() {
+            if (!audioEnabled) return false;
+            try {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+                if (!synth) {
+                    synth = new Tone.Synth({
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.01, decay: 0.12, sustain: 0.05, release: 0.2 }
+                    }).toDestination();
+                }
+                if (!polySynth) {
+                    polySynth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "sawtooth" },
+                        envelope: { attack: 0.02, decay: 0.2, sustain: 0.15, release: 0.4 }
+                    }).toDestination();
+                    polySynth.volume.value = -8;
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function playSound(type, stepIndex = 0) {
+            if (!audioEnabled) return;
+            const ready = await ensureAudioReady();
+            if (!ready) return;
+
+            const now = Tone.now();
+            const scaleNotes = ["C4", "E4", "G4", "A4", "C5", "D5", "E5"];
+            try {
+                if (type === 'valid') {
+                    synth.triggerAttackRelease(scaleNotes[stepIndex % scaleNotes.length], "16n", now);
+                    setRobotMood('happy');
+                } else if (type === 'hover') {
+                    synth.triggerAttackRelease("E5", "64n", now);
+                } else if (type === 'error') {
+                    synth.triggerAttackRelease("F#2", "8n", now);
+                    setRobotMood('alert');
+                } else if (type === 'switch') {
+                    synth.triggerAttackRelease("A4", "32n", now);
+                    synth.triggerAttackRelease("E5", "16n", now + 0.06);
+                } else if (type === 'celebrate') {
+                    polySynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n", now);
+                    polySynth.triggerAttackRelease(["F4", "A4", "C5", "F5"], "8n", now + 0.16);
+                    polySynth.triggerAttackRelease(["G4", "B4", "D5", "G5"], "4n", now + 0.32);
+                    setRobotMood('celebrate');
+                }
+            } catch (e) {}
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('soundIcon');
+            const text = document.getElementById('soundText');
+            if (audioEnabled) {
+                icon.className = "fa-solid fa-volume-high text-cyan-400";
+                if (text) text.textContent = "SONIDO ON";
+                playSound('switch');
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-pink-500";
+                if (text) text.textContent = "SILENCIO";
+            }
+        }
+
+        // ================= ROBO-PROFE 3D =================
+        let robotScene, robotCamera, robotRenderer, headGroup, leftEye, rightEye, leftBrow, rightBrow, antennaBall;
+        let robotMood = 'idle';
+        let moodTimer = 0;
+        let isDraggingRobot = false;
+        let prevRobotX = 0, prevRobotY = 0;
+
+        function initRobot3D() {
+            const container = document.getElementById('robotCanvasContainer');
+            const width = container.clientWidth || 128;
+            const height = container.clientHeight || 128;
+
+            robotScene = new THREE.Scene();
+            robotCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+            robotCamera.position.set(0, 0.05, 3.35);
+
+            robotRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            robotRenderer.setSize(width, height);
+            robotRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(robotRenderer.domElement);
+
+            robotScene.add(new THREE.AmbientLight(0xffffff, 0.95));
+            const cyanLight = new THREE.PointLight(0x00f2fe, 2.5, 12);
+            cyanLight.position.set(2.5, 2.5, 3.5);
+            robotScene.add(cyanLight);
+
+            const pinkLight = new THREE.PointLight(0xfe0979, 2.2, 12);
+            pinkLight.position.set(-2.5, -1.8, 3);
+            robotScene.add(pinkLight);
+
+            headGroup = new THREE.Group();
+            robotScene.add(headGroup);
+
+            const helmetMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.75, roughness: 0.25 });
+            const trimCyanMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.75 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xfacc15, emissiveIntensity: 0.85 });
+            const greenMat = new THREE.MeshStandardMaterial({ color: 0x39ff14, emissive: 0x39ff14, emissiveIntensity: 0.9 });
+            const pinkMat = new THREE.MeshStandardMaterial({ color: 0xfe0979, emissive: 0xfe0979, emissiveIntensity: 0.9 });
+
+            headGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.75, 1.42, 1.25), helmetMat));
+
+            const crestMesh = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.22, 1.32), trimCyanMat);
+            crestMesh.position.set(0, 0.74, 0);
+            headGroup.add(crestMesh);
+
+            const screenMesh = new THREE.Mesh(new THREE.BoxGeometry(1.52, 1.06, 0.12), new THREE.MeshBasicMaterial({ color: 0x05050d }));
+            screenMesh.position.set(0, -0.02, 0.61);
+            headGroup.add(screenMesh);
+
+            const eyeGeo = new THREE.SphereGeometry(0.19, 24, 24);
+            leftEye = new THREE.Mesh(eyeGeo, greenMat.clone());
+            leftEye.scale.set(1.1, 1.15, 0.45);
+            leftEye.position.set(-0.38, 0.12, 0.66);
+            headGroup.add(leftEye);
+
+            rightEye = new THREE.Mesh(eyeGeo, greenMat.clone());
+            rightEye.scale.set(1.1, 1.15, 0.45);
+            rightEye.position.set(0.38, 0.12, 0.66);
+            headGroup.add(rightEye);
+
+            const browGeo = new THREE.BoxGeometry(0.36, 0.065, 0.08);
+            leftBrow = new THREE.Mesh(browGeo, goldMat.clone());
+            leftBrow.position.set(-0.38, 0.36, 0.69);
+            headGroup.add(leftBrow);
+
+            rightBrow = new THREE.Mesh(browGeo, goldMat.clone());
+            rightBrow.position.set(0.38, 0.36, 0.69);
+            headGroup.add(rightBrow);
+
+            const segGeo = new THREE.BoxGeometry(0.13, 0.07, 0.08);
+            [-0.32, -0.16, 0, 0.16, 0.32].forEach((xPos, i) => {
+                const seg = new THREE.Mesh(segGeo, trimCyanMat.clone());
+                const curveY = (i === 0 || i === 4) ? -0.24 : (i === 1 || i === 3) ? -0.30 : -0.32;
+                seg.position.set(xPos, curveY, 0.68);
+                headGroup.add(seg);
+            });
+
+            const earGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.18, 20);
+            earGeo.rotateZ(Math.PI / 2);
+            const leftEar = new THREE.Mesh(earGeo, trimCyanMat);
+            leftEar.position.set(-0.95, 0, 0);
+            headGroup.add(leftEar);
+
+            const rightEar = new THREE.Mesh(earGeo, trimCyanMat);
+            rightEar.position.set(0.95, 0, 0);
+            headGroup.add(rightEar);
+
+            const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.38), goldMat);
+            rod.position.set(0, 0.92, 0);
+            headGroup.add(rod);
+
+            antennaBall = new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 16), pinkMat.clone());
+            antennaBall.position.set(0, 1.14, 0);
+            headGroup.add(antennaBall);
+
+            container.addEventListener('mousedown', (e) => {
+                isDraggingRobot = true;
+                prevRobotX = e.clientX;
+                prevRobotY = e.clientY;
+            });
+            window.addEventListener('mouseup', () => isDraggingRobot = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingRobot) return;
+                headGroup.rotation.y = Math.max(-0.65, Math.min(0.65, headGroup.rotation.y + (e.clientX - prevRobotX) * 0.015));
+                headGroup.rotation.x = Math.max(-0.35, Math.min(0.35, headGroup.rotation.x + (e.clientY - prevRobotY) * 0.015));
+                prevRobotX = e.clientX;
+                prevRobotY = e.clientY;
+            });
+        }
+
+        function setRobotMood(mood) {
+            robotMood = mood;
+            moodTimer = 110;
+            if (!leftEye || !rightEye || !antennaBall) return;
+
+            const badge = document.getElementById('robotMoodBadgeText');
+            const dot = document.getElementById('robotStatusDot');
+            const applyColor = (mesh, hex) => {
+                mesh.material.color.setHex(hex);
+                if (mesh.material.emissive) mesh.material.emissive.setHex(hex);
+            };
+
+            if (mood === 'happy') {
+                if (badge) badge.textContent = "¡CORRECTO!";
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-[#39ff14] animate-ping";
+                applyColor(leftEye, 0x39ff14);
+                applyColor(rightEye, 0x39ff14);
+                applyColor(antennaBall, 0x00f2fe);
+            } else if (mood === 'thinking') {
+                if (badge) badge.textContent = "DETECTOR";
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-[#facc15] animate-ping";
+                applyColor(leftEye, 0xfacc15);
+                applyColor(rightEye, 0x00f2fe);
+                applyColor(antennaBall, 0xfacc15);
+            } else if (mood === 'alert') {
+                if (badge) badge.textContent = "REVISA";
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-[#fe0979] animate-ping";
+                applyColor(leftEye, 0xfe0979);
+                applyColor(rightEye, 0xfe0979);
+                applyColor(antennaBall, 0xfe0979);
+            } else if (mood === 'celebrate') {
+                if (badge) badge.textContent = "¡2/2 LOGRADO!";
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-[#facc15] animate-ping";
+                applyColor(leftEye, 0xfacc15);
+                applyColor(rightEye, 0xfacc15);
+                applyColor(antennaBall, 0x39ff14);
+            }
+        }
+
+        function updateRobotSpeech(html) {
+            document.getElementById('robotMessage').innerHTML = html;
+        }
+
+        function getCoverMiniSvg(id) {
+            switch (id) {
+                case 1: // Teorema de Tales
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <line x1="8" y1="18" x2="92" y2="18" stroke="#64748b" stroke-width="2"/>
+                        <line x1="8" y1="42" x2="92" y2="42" stroke="#64748b" stroke-width="2"/>
+                        <line x1="8" y1="66" x2="92" y2="66" stroke="#64748b" stroke-width="2"/>
+                        <line x1="36" y1="10" x2="20" y2="74" stroke="#00f2fe" stroke-width="3.2"/>
+                        <line x1="64" y1="10" x2="80" y2="74" stroke="#fe0979" stroke-width="3.2"/>
+                    </svg>`;
+                case 2: // Corolario de Tales
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="50,10 14,68 86,68" fill="rgba(0,242,254,0.12)" stroke="#00f2fe" stroke-width="2.8"/>
+                        <line x1="28" y1="45" x2="72" y2="45" stroke="#facc15" stroke-width="3.2"/>
+                    </svg>`;
+                case 3: // Bisectriz Interior
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="46,12 14,68 86,68" fill="rgba(57,255,20,0.12)" stroke="#00f2fe" stroke-width="2.8"/>
+                        <line x1="46" y1="12" x2="48" y2="68" stroke="#facc15" stroke-width="3" stroke-dasharray="4 2"/>
+                    </svg>`;
+                case 4: // Bisectriz Exterior
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="48,18 10,66 44,66" fill="rgba(255,94,0,0.18)" stroke="#00f2fe" stroke-width="2.8"/>
+                        <line x1="10" y1="66" x2="92" y2="66" stroke="#facc15" stroke-width="2.5"/>
+                        <line x1="48" y1="18" x2="90" y2="66" stroke="#fe0979" stroke-width="3" stroke-dasharray="4 2"/>
+                    </svg>`;
+                case 5: // Semejanza AA
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="30,14 8,66 52,66" fill="rgba(254,9,121,0.18)" stroke="#fe0979" stroke-width="2.6"/>
+                        <polygon points="76,30 60,66 92,66" fill="rgba(0,242,254,0.18)" stroke="#00f2fe" stroke-width="2.6"/>
+                    </svg>`;
+                case 6: // Semejanza LAL
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="30,14 8,66 52,66" fill="rgba(191,0,255,0.18)" stroke="#bf00ff" stroke-width="2.6"/>
+                        <polygon points="76,30 60,66 92,66" fill="rgba(250,204,21,0.18)" stroke="#facc15" stroke-width="2.6"/>
+                        <circle cx="14" cy="61" r="4" fill="#00f2fe"/><circle cx="65" cy="61" r="3.5" fill="#00f2fe"/>
+                    </svg>`;
+                case 7: // Semejanza LLL
+                    return `<svg viewBox="0 0 100 80" class="w-full h-full">
+                        <polygon points="30,14 8,66 52,66" fill="rgba(57,255,20,0.16)" stroke="#39ff14" stroke-width="2.8"/>
+                        <polygon points="76,30 60,66 92,66" fill="rgba(0,242,254,0.16)" stroke="#00f2fe" stroke-width="2.8"/>
+                    </svg>`;
+            }
+        }
+
+        function renderCoverAndNav() {
+            const cardTemplate = (th, idx) => `
+                <div onclick="enterTheoremFromCover(${idx})" class="group cursor-pointer bg-slate-900/85 hover:bg-slate-800/95 border-[3px] border-slate-700 hover:${th.borderColor} p-4 rounded-[1.8rem] transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-[0_0_30px_rgba(0,242,254,0.28)]">
+                    <div class="flex items-center gap-3.5 mb-3">
+                        <div class="w-16 h-16 shrink-0 rounded-2xl bg-black border-2 border-white/15 flex items-center justify-center p-1.5 group-hover:scale-105 transition-transform">
+                            ${getCoverMiniSvg(th.id)}
+                        </div>
+                        <div>
+                            <span class="inline-block bg-black/80 text-cyan-300 border border-cyan-700/70 px-2.5 py-0.5 rounded-full font-black text-[11px] tracking-widest uppercase mb-1">
+                                ${th.groupBadge}
+                            </span>
+                            <h3 class="text-base sm:text-lg font-black text-white leading-tight">${th.blockNum}. ${th.shortTitle}</h3>
+                            <p class="text-xs text-yellow-300 font-bold mt-0.5">${th.conditionBadge}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-2.5 border-t border-white/10 gap-2">
+                        <div class="math-expr text-sm sm:text-base font-bold text-slate-100 whitespace-nowrap overflow-x-auto">${th.formulaHTML}</div>
+                        <span class="text-cyan-400 font-black text-xs uppercase flex items-center gap-1 group-hover:translate-x-1 transition-transform shrink-0">
+                            ABRIR <i class="fa-solid fa-play text-[10px]"></i>
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            const propGrid = document.getElementById('coverProporcionalidadGrid');
+            const semGrid = document.getElementById('coverSemejanzaGrid');
+
+            propGrid.innerHTML = THEOREMS_DATA.slice(0, 4).map((th, i) => cardTemplate(th, i)).join('');
+            semGrid.innerHTML = THEOREMS_DATA.slice(4, 7).map((th, i) => cardTemplate(th, i + 4)).join('');
+
+            const topNav = document.getElementById('topTheoremNav');
+            const propButtons = THEOREMS_DATA.slice(0, 4).map((th, idx) => `
+                <button onclick="selectTheorem(${idx})" id="thNavBtn-${idx}" class="px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all">
+                    ${th.blockNum}) ${th.navTag}
+                </button>
+            `).join('');
+
+            const semButtons = THEOREMS_DATA.slice(4, 7).map((th, i) => {
+                const idx = i + 4;
+                return `
+                    <button onclick="selectTheorem(${idx})" id="thNavBtn-${idx}" class="px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm transition-all">
+                        ${th.blockNum}) ${th.navTag}
+                    </button>
+                `;
+            }).join('');
+
+            topNav.innerHTML = `
+                <div class="flex flex-wrap items-center gap-1.5 bg-cyan-950/50 border border-cyan-500/40 px-2.5 py-1.5 rounded-2xl">
+                    <span class="text-xs font-black text-cyan-300 uppercase px-1.5">Bloque I • Proporcionalidad (1–4):</span>
+                    ${propButtons}
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 bg-pink-950/50 border border-pink-500/40 px-2.5 py-1.5 rounded-2xl">
+                    <span class="text-xs font-black text-pink-300 uppercase px-1.5">Bloque II • Semejanza (1–3):</span>
+                    ${semButtons}
+                </div>
+            `;
+        }
+
+        function enterTheoremFromCover(index) {
+            document.getElementById('coverPortalSection').classList.add('hidden');
+            document.getElementById('labWorkspaceWrapper').classList.remove('hidden');
+            selectTheorem(index, false);
+            setTimeout(() => onWindowResize(), 50);
+        }
+
+        function openCoverPortal() {
+            clearDemoTimers();
+            playSound('switch');
+            document.getElementById('labWorkspaceWrapper').classList.add('hidden');
+            document.getElementById('coverPortalSection').classList.remove('hidden');
+        }
+
+        function renderElementDetectorButtons() {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            const container = document.getElementById('elementDetectorButtons');
+            container.innerHTML = th.elements.map(el => {
+                const isSelected = activeHighlightKey === el.key;
+                return `
+                    <button onclick="highlightElement('${el.key}')"
+                            class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-1.5 border ${isSelected ? 'bg-white text-black border-white scale-105 shadow-lg' : 'bg-slate-900/90 text-white border-white/20 hover:border-white/60'}">
+                        <span class="w-3 h-3 rounded-full shrink-0" style="background:${el.color}; box-shadow: 0 0 8px ${el.color}"></span>
+                        <span>${el.label}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function highlightElement(key) {
+            activeHighlightKey = key;
+            playSound('hover');
+            renderElementDetectorButtons();
+
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            if (key === 'ALL') {
+                document.getElementById('diagramOverlayTitle').innerHTML = `TODOS LOS ELEMENTOS ACTIVOS`;
+                document.getElementById('diagramOverlaySub').innerHTML = `Observa cómo los colores de la figura coinciden con la proporción matemática`;
+                updateRobotSpeech(th.robotIntro);
+            } else {
+                const found = th.elements.find(e => e.key === key);
+                if (found) {
+                    setRobotMood('thinking');
+                    document.getElementById('diagramOverlayTitle').innerHTML = `ELEMENTO RESALTADO: <span style="color:${found.color}">${found.label}</span>`;
+                    document.getElementById('diagramOverlaySub').innerHTML = found.desc;
+                    updateRobotSpeech(`<b style="color:${found.color}">${found.label}:</b> ${found.desc}`);
+                }
+            }
+            renderGeometrySVG();
+        }
+
+        function isKeyHighlighted(key) {
+            return activeHighlightKey === 'ALL' || activeHighlightKey === key;
+        }
+
+        function segClass(key) {
+            if (activeHighlightKey === key) return 'highlight-active-geo';
+            return '';
+        }
+
+        function segOpacity(key) {
+            if (activeHighlightKey === 'ALL' || activeHighlightKey === key) return '1';
+            return '0.22';
+        }
+
+        function badgeSVG(x, y, textHTML, bgColor, textColor, elementKey, descText = '') {
+            const op = segOpacity(elementKey);
+            const clean = textHTML.replace(/<[^>]*>/g, '');
+            const boxW = Math.max(76, clean.length * 10.5 + 24);
+            const safeDesc = descText.replace(/'/g, "\\'");
+            const cx = Math.max(boxW / 2 + 8, Math.min(880 - boxW / 2 - 8, x));
+            const cy = Math.max(24, Math.min(516, y));
+            return `
+                <g opacity="${op}" class="cursor-pointer transition-transform hover:scale-105"
+                   onclick="highlightElement('${elementKey}')"
+                   onmouseenter="onHoverElementBadge('${clean.replace(/'/g, "\\'")}', '${safeDesc}', '${bgColor}')">
+                    <rect x="${cx - boxW / 2}" y="${cy - 17}" width="${boxW}" height="34" rx="10"
+                          fill="${bgColor}" stroke="#ffffff" stroke-width="2"
+                          filter="drop-shadow(0 0 8px ${bgColor})"/>
+                    <text x="${cx}" y="${cy + 6}" text-anchor="middle"
+                          fill="${textColor}" font-family="KaTeX_Main, Times New Roman, serif"
+                          font-size="18" font-weight="bold">${textHTML}</text>
+                </g>
+            `;
+        }
+
+        function vertexPointSVG(x, y, label, dx = 0, dy = -16) {
+            return `
+                <g class="pointer-events-none">
+                    <circle cx="${x}" cy="${y}" r="6" fill="#ffffff" stroke="#00f2fe" stroke-width="2.5"/>
+                    <text x="${x + dx}" y="${y + dy}" text-anchor="middle" fill="#ffffff"
+                          font-family="KaTeX_Main, serif" font-size="20" font-weight="bold"
+                          style="text-shadow: 0 2px 6px #000">${label}</text>
+                </g>
+            `;
+        }
+
+        function draggableHandleSVG(x, y, handleKey, label = '', dx = 0, dy = -18, color = '#00f2fe', subHint = '') {
+            const isActive = activeDragHandle === handleKey;
+            return `
+                <g class="cursor-grab active:cursor-grabbing"
+                   onmousedown="startGeoDrag('${handleKey}', event)"
+                   ontouchstart="startGeoDrag('${handleKey}', event)">
+                    <circle cx="${x}" cy="${y}" r="24" fill="transparent"/>
+                    <circle cx="${x}" cy="${y}" r="${isActive ? 16 : 12}"
+                            fill="${color}33" stroke="${color}" stroke-width="2" stroke-dasharray="3 2"/>
+                    <circle cx="${x}" cy="${y}" r="${isActive ? 8.5 : 6.5}"
+                            fill="${isActive ? '#facc15' : '#ffffff'}" stroke="${color}" stroke-width="3"
+                            filter="drop-shadow(0 0 10px ${color})"/>
+                    ${label ? `
+                        <text x="${x + dx}" y="${y + dy}" text-anchor="middle" fill="#ffffff"
+                              font-family="KaTeX_Main, serif" font-size="20" font-weight="bold"
+                              style="text-shadow: 0 2px 8px #000" class="pointer-events-none">${label}</text>
+                    ` : ''}
+                    ${subHint ? `
+                        <rect x="${x - 66}" y="${y + dy - 16}" width="132" height="22" rx="6" fill="rgba(0,0,0,0.88)" stroke="${color}" stroke-width="1.3" class="pointer-events-none"/>
+                        <text x="${x}" y="${y + dy}" text-anchor="middle" fill="${color}" font-size="11.5" font-weight="900" class="pointer-events-none">${subHint}</text>
+                    ` : ''}
+                </g>
+            `;
+        }
+
+        function createAngleArcSVG(v, p1, p2, radius, fillColor, strokeColor, elementKey) {
+            const op = segOpacity(elementKey);
+            const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
+            const a2 = Math.atan2(p2.y - v.y, p2.x - v.x);
+            let diff = a2 - a1;
+            while (diff <= -Math.PI) diff += 2 * Math.PI;
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            const sweepFlag = diff >= 0 ? 1 : 0;
+            const sx = v.x + radius * Math.cos(a1);
+            const sy = v.y + radius * Math.sin(a1);
+            const ex = v.x + radius * Math.cos(a2);
+            const ey = v.y + radius * Math.sin(a2);
+            return `<path opacity="${op}" onclick="highlightElement('${elementKey}')" class="cursor-pointer" d="M ${v.x} ${v.y} L ${sx} ${sy} A ${radius} ${radius} 0 0 ${sweepFlag} ${ex} ${ey} Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="2.5"/>`;
+        }
+
+        function getBisectorLabelPos(v, p1, p2, distOffset) {
+            const d1 = dist2D(v, p1) || 1;
+            const d2 = dist2D(v, p2) || 1;
+            const bx = (p1.x - v.x) / d1 + (p2.x - v.x) / d2;
+            const by = (p1.y - v.y) / d1 + (p2.y - v.y) / d2;
+            const bm = Math.hypot(bx, by) || 1;
+            return { x: v.x + (bx / bm) * distOffset, y: v.y + (by / bm) * distOffset };
+        }
+
+        function getSvgCoords(evt) {
+            const svg = document.getElementById('geometrySvgCanvas');
+            if (!svg) return { x: 0, y: 0 };
+            const rect = svg.getBoundingClientRect();
+            const clientX = evt.touches && evt.touches.length ? evt.touches[0].clientX : evt.clientX;
+            const clientY = evt.touches && evt.touches.length ? evt.touches[0].clientY : evt.clientY;
+            return {
+                x: (clientX - rect.left) * (880 / (rect.width || 880)),
+                y: (clientY - rect.top) * (540 / (rect.height || 540))
+            };
+        }
+
+        function startGeoDrag(handleKey, evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            activeDragHandle = handleKey;
+            dragStartPointer = getSvgCoords(evt);
+            dragSnapshot = JSON.parse(JSON.stringify(geoState));
+            if (currentDiagramMode !== 'EXPLORE') {
+                switchDiagramViewMode('EXPLORE', true);
+            }
+            playSound('hover');
+            renderGeometrySVG();
+        }
+
+        function onGlobalGeoMove(evt) {
+            if (!activeDragHandle) return;
+            const pt = getSvgCoords(evt);
+            const dx = pt.x - dragStartPointer.x;
+            const dy = pt.y - dragStartPointer.y;
+            const thId = THEOREMS_DATA[currentTheoremIdx].id;
+
+            const clampX = (x, min = 70, max = 810) => Math.max(min, Math.min(max, x));
+            const clampY = (y, min = 55, max = 485) => Math.max(min, Math.min(max, y));
+
+            if (thId === 1) {
+                // Teorema de Tales
+                if (activeDragHandle === 'P_GROUP') {
+                    // Mover las 3 rectas paralelas simultáneamente
+                    const newY1 = clampY(dragSnapshot.P_GROUP.y + dy, 65, 195);
+                    const deltaY = newY1 - dragSnapshot.P_GROUP.y;
+                    geoState.P_GROUP.y = newY1;
+                    geoState.P_TILT.y = clampY(dragSnapshot.P_TILT.y + deltaY, 65, 225);
+                } else if (activeDragHandle === 'P_TILT') {
+                    // Inclinar las 3 rectas paralelas a la vez
+                    geoState.P_TILT.y = clampY(pt.y, 60, 215);
+                } else if (activeDragHandle === 'L2_HANDLE') {
+                    // Ajustar la altura de L2 entre L1 y L3 para cambiar AB/BC y MN/NP proporcionalmente
+                    const r = (pt.y - geoState.P_GROUP.y) / (geoState.SPAN_L1_L3 || 320);
+                    geoState.L2_RATIO = Math.max(0.22, Math.min(0.78, r));
+                } else if (['S1_TOP', 'S1_BOT', 'S2_TOP', 'S2_BOT'].includes(activeDragHandle)) {
+                    // Mover las rectas secantes manteniendo fijas las 3 paralelas
+                    geoState[activeDragHandle].x = clampX(pt.x, 120, 760);
+                }
+            } else if (thId === 2) {
+                // Corolario de Tales: mover la paralela MN o los vértices A, B, C del triángulo
+                if (activeDragHandle === 'MN_HANDLE') {
+                    const bY = geoState.B.y;
+                    const baseMidY = (geoState.A.y + geoState.C.y) / 2;
+                    const t = (pt.y - bY) / ((baseMidY - bY) || 1);
+                    geoState.MN_HANDLE.t = Math.max(0.22, Math.min(0.82, t));
+                } else if (activeDragHandle === 'B') {
+                    geoState.B.x = clampX(pt.x, 180, 700);
+                    geoState.B.y = clampY(pt.y, 55, 240);
+                } else if (activeDragHandle === 'A') {
+                    geoState.A.x = clampX(pt.x, 90, geoState.C.x - 140);
+                    geoState.A.y = clampY(pt.y, 290, 470);
+                } else if (activeDragHandle === 'C') {
+                    geoState.C.x = clampX(pt.x, geoState.A.x + 140, 790);
+                    geoState.C.y = clampY(pt.y, 290, 470);
+                }
+            } else if (thId === 3) {
+                // Bisectriz Interior: mover vértices A, B, C libremente
+                if (activeDragHandle === 'B') {
+                    geoState.B.x = clampX(pt.x, 160, 720);
+                    geoState.B.y = clampY(pt.y, 60, 260);
+                } else if (activeDragHandle === 'A') {
+                    geoState.A.x = clampX(pt.x, 90, geoState.C.x - 160);
+                    geoState.A.y = clampY(pt.y, 290, 465);
+                } else if (activeDragHandle === 'C') {
+                    geoState.C.x = clampX(pt.x, geoState.A.x + 160, 790);
+                    geoState.C.y = clampY(pt.y, 290, 465);
+                }
+            } else if (thId === 4) {
+                // Bisectriz Exterior: mover A, B, C asegurando a > b para que BE corte la prolongación derecha en E
+                if (activeDragHandle === 'B') {
+                    geoState.B.x = clampX(pt.x, 280, 490);
+                    geoState.B.y = clampY(pt.y, 65, 235);
+                } else if (activeDragHandle === 'A') {
+                    geoState.A.x = clampX(pt.x, 75, geoState.C.x - 120);
+                } else if (activeDragHandle === 'C') {
+                    geoState.C.x = clampX(pt.x, geoState.A.x + 120, 430);
+                }
+            } else if (thId >= 5 && thId <= 7) {
+                // Criterios de Semejanza AA, LAL y LLL
+                if (activeDragHandle === 'B') {
+                    geoState.B.x = clampX(pt.x, 110, 410);
+                    geoState.B.y = clampY(pt.y, 65, 265);
+                } else if (activeDragHandle === 'A') {
+                    geoState.A.x = clampX(pt.x, 60, geoState.C.x - 130);
+                    geoState.A.y = clampY(pt.y, 290, 455);
+                } else if (activeDragHandle === 'C') {
+                    geoState.C.x = clampX(pt.x, geoState.A.x + 130, 465);
+                    geoState.C.y = clampY(pt.y, 290, 455);
+                } else if (activeDragHandle === 'SCALE_HANDLE') {
+                    // Ajustar el tamaño del triángulo semejante MNP arrastrando su vértice superior N
+                    const ratio = (410 - clampY(pt.y, 130, 320)) / (410 - geoState.B.y || 200);
+                    const kVal = Math.max(1.25, Math.min(2.6, +(1 / Math.max(0.38, Math.min(0.85, ratio))).toFixed(2)));
+                    geoState.SCALE_HANDLE.k = kVal;
+                }
+            }
+
+            renderGeometrySVG();
+        }
+
+        function stopGeoDrag() {
+            if (activeDragHandle) {
+                activeDragHandle = null;
+                renderGeometrySVG();
+            }
+        }
+
+        window.addEventListener('mousemove', onGlobalGeoMove);
+        window.addEventListener('mouseup', stopGeoDrag);
+        window.addEventListener('touchmove', onGlobalGeoMove, { passive: false });
+        window.addEventListener('touchend', stopGeoDrag);
+
+        function onHoverElementBadge(label, desc, color) {
+            playSound('hover');
+            document.getElementById('diagramOverlayTitle').innerHTML = `ELEMENTO: <span style="color:${color}">${label}</span>`;
+            if (desc) document.getElementById('diagramOverlaySub').innerHTML = desc;
+        }
+
+        function renderGeometrySVG() {
+            const svg = document.getElementById('geometrySvgCanvas');
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            const liveEq = document.getElementById('liveCanvasEquation');
+
+            if (!geoState || Object.keys(geoState).length === 0) {
+                geoState = cloneGeoState(th.id);
+            }
+
+            const isEx1 = currentDiagramMode === 'EX1';
+            const isEx2 = currentDiagramMode === 'EX2';
+            const exData = isEx1 ? th.examples[0] : isEx2 ? th.examples[1] : null;
+
+            const scaleUnit = 22; // Escala pedagógica para convertir píxeles a unidades limpias
+            let content = '';
+
+            if (th.id === 1) {
+                // 1. TEOREMA DE TALES: 3 Paralelas que se mueven a la vez + 2 Secantes independientes
+                const g = geoState;
+                const span = g.SPAN_L1_L3 || 320;
+                const r = g.L2_RATIO || 0.44;
+
+                const L1_L = { x: 90, y: g.P_GROUP.y };
+                const L1_R = { x: 780, y: g.P_TILT.y };
+
+                const L2_L = { x: 90, y: g.P_GROUP.y + span * r };
+                const L2_R = { x: 780, y: g.P_TILT.y + span * r };
+
+                const L3_L = { x: 90, y: g.P_GROUP.y + span };
+                const L3_R = { x: 780, y: g.P_TILT.y + span };
+
+                const A = lineIntersection(L1_L, L1_R, g.S1_TOP, g.S1_BOT);
+                const B = lineIntersection(L2_L, L2_R, g.S1_TOP, g.S1_BOT);
+                const C = lineIntersection(L3_L, L3_R, g.S1_TOP, g.S1_BOT);
+
+                const M = lineIntersection(L1_L, L1_R, g.S2_TOP, g.S2_BOT);
+                const N = lineIntersection(L2_L, L2_R, g.S2_TOP, g.S2_BOT);
+                const P = lineIntersection(L3_L, L3_R, g.S2_TOP, g.S2_BOT);
+
+                const ab = +(dist2D(A, B) / scaleUnit).toFixed(1);
+                const bc = +(dist2D(B, C) / scaleUnit).toFixed(1);
+                const mn = +(dist2D(M, N) / scaleUnit).toFixed(1);
+                const np = +(dist2D(N, P) / scaleUnit).toFixed(1);
+                const ratioVal = (ab / (bc || 1)).toFixed(2);
+
+                const lblAB = exData ? `AB = ${exData.diagramLabels.ab}` : `AB = ${ab}`;
+                const lblBC = exData ? `BC = ${exData.diagramLabels.bc}` : `BC = ${bc}`;
+                const lblMN = exData ? `MN = ${exData.diagramLabels.mn}` : `MN = ${mn}`;
+                const lblNP = exData ? `NP = ${exData.diagramLabels.np}` : `NP = ${np}`;
+
+                const midL2 = { x: (B.x + N.x) / 2, y: (B.y + N.y) / 2 };
+
+                content = `
+                    <!-- 3 Rectas Paralelas L1, L2, L3 -->
+                    <g opacity="${segOpacity('PAR')}" class="${segClass('PAR')}">
+                        <line x1="${L1_L.x}" y1="${L1_L.y}" x2="${L1_R.x}" y2="${L1_R.y}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="9 5"/>
+                        <line x1="${L2_L.x}" y1="${L2_L.y}" x2="${L2_R.x}" y2="${L2_R.y}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="9 5"/>
+                        <line x1="${L3_L.x}" y1="${L3_L.y}" x2="${L3_R.x}" y2="${L3_R.y}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="9 5"/>
+                        <text x="${L1_R.x + 28}" y="${L1_R.y + 6}" fill="#38bdf8" font-family="KaTeX_Math, serif" font-size="22" font-weight="bold">L₁</text>
+                        <text x="${L2_R.x + 28}" y="${L2_R.y + 6}" fill="#38bdf8" font-family="KaTeX_Math, serif" font-size="22" font-weight="bold">L₂</text>
+                        <text x="${L3_R.x + 28}" y="${L3_R.y + 6}" fill="#38bdf8" font-family="KaTeX_Math, serif" font-size="22" font-weight="bold">L₃</text>
+                    </g>
+
+                    <!-- Rectas Secantes completas -->
+                    <line x1="${g.S1_TOP.x}" y1="${g.S1_TOP.y}" x2="${g.S1_BOT.x}" y2="${g.S1_BOT.y}" stroke="#475569" stroke-width="3.5"/>
+                    <line x1="${g.S2_TOP.x}" y1="${g.S2_TOP.y}" x2="${g.S2_BOT.x}" y2="${g.S2_BOT.y}" stroke="#475569" stroke-width="3.5"/>
+
+                    <!-- 4 Segmentos Proporcionales coloreados -->
+                    <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('AB')}" class="${segClass('AB')}"/>
+                    <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('BC')}" class="${segClass('BC')}"/>
+                    <line x1="${M.x}" y1="${M.y}" x2="${N.x}" y2="${N.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('MN')}" class="${segClass('MN')}"/>
+                    <line x1="${N.x}" y1="${N.y}" x2="${P.x}" y2="${P.y}" stroke="#39ff14" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('NP')}" class="${segClass('NP')}"/>
+
+                    <!-- Puntos de intersección A, B, C y M, N, P -->
+                    ${vertexPointSVG(A.x, A.y, 'A', -22, -6)}
+                    ${vertexPointSVG(B.x, B.y, 'B', -22, -6)}
+                    ${vertexPointSVG(C.x, C.y, 'C', -22, -6)}
+                    ${vertexPointSVG(M.x, M.y, 'M', 22, -6)}
+                    ${vertexPointSVG(N.x, N.y, 'N', 22, -6)}
+                    ${vertexPointSVG(P.x, P.y, 'P', 22, -6)}
+
+                    <!-- Etiquetas con medidas dinámicas -->
+                    ${badgeSVG((A.x + B.x) / 2 - 75, (A.y + B.y) / 2, lblAB, '#00f2fe', '#000', 'AB', 'Segmento superior izquierdo AB')}
+                    ${badgeSVG((B.x + C.x) / 2 - 75, (B.y + C.y) / 2, lblBC, '#facc15', '#000', 'BC', 'Segmento inferior izquierdo BC')}
+                    ${badgeSVG((M.x + N.x) / 2 + 75, (M.y + N.y) / 2, lblMN, '#fe0979', '#fff', 'MN', 'Segmento superior derecho MN')}
+                    ${badgeSVG((N.x + P.x) / 2 + 75, (N.y + P.y) / 2, lblNP, '#39ff14', '#000', 'NP', 'Segmento inferior derecho NP')}
+
+                    <!-- Controles interactivos para mover las 3 paralelas juntas, L2 y las 2 secantes -->
+                    ${draggableHandleSVG(L1_L.x + 30, L1_L.y, 'P_GROUP', '', 0, -22, '#38bdf8', 'MOVER 3 PARALELAS')}
+                    ${draggableHandleSVG(L1_R.x - 30, L1_R.y, 'P_TILT', '', 0, -22, '#38bdf8', 'INCLINAR PARALELAS')}
+                    ${draggableHandleSVG(midL2.x, midL2.y, 'L2_HANDLE', '', 0, -22, '#facc15', 'DESLIZAR L₂')}
+                    ${draggableHandleSVG(g.S1_TOP.x, g.S1_TOP.y, 'S1_TOP', '', 0, -18, '#00f2fe', 'MOVER SECANTE 1')}
+                    ${draggableHandleSVG(g.S1_BOT.x, g.S1_BOT.y, 'S1_BOT', '', 0, 26, '#00f2fe')}
+                    ${draggableHandleSVG(g.S2_TOP.x, g.S2_TOP.y, 'S2_TOP', '', 0, -18, '#fe0979', 'MOVER SECANTE 2')}
+                    ${draggableHandleSVG(g.S2_BOT.x, g.S2_BOT.y, 'S2_BOT', '', 0, 26, '#fe0979')}
+                `;
+
+                liveEq.innerHTML = exData
+                    ? exData.equationPreview
+                    : `<span class="latex-frac"><span class="num text-cyan-300">AB (${ab})</span><span class="den text-yellow-300">BC (${bc})</span></span> = <span class="latex-frac"><span class="num text-pink-400">MN (${mn})</span><span class="den text-[#39ff14]">NP (${np})</span></span> = <b class="text-[#39ff14]">${ratioVal}</b>`;
+
+            } else if (th.id === 2) {
+                // 2. COROLARIO DE TALES: Vértices A, B, C manipulables + recta paralela MN manipulable
+                const { A, B, C, MN_HANDLE } = geoState;
+                const t = MN_HANDLE.t;
+
+                const M = { x: B.x + (A.x - B.x) * t, y: B.y + (A.y - B.y) * t };
+                const N = { x: B.x + (C.x - B.x) * t, y: B.y + (C.y - B.y) * t };
+                const midMN = { x: (M.x + N.x) / 2, y: (M.y + N.y) / 2 };
+
+                const bm = +(dist2D(B, M) / scaleUnit).toFixed(1);
+                const ma = +(dist2D(M, A) / scaleUnit).toFixed(1);
+                const bn = +(dist2D(B, N) / scaleUnit).toFixed(1);
+                const nc = +(dist2D(N, C) / scaleUnit).toFixed(1);
+                const ratioVal = (bm / (ma || 1)).toFixed(2);
+
+                const lblBM = exData ? `BM = ${exData.diagramLabels.bm}` : `BM = ${bm}`;
+                const lblMA = exData ? `MA = ${exData.diagramLabels.ma}` : `MA = ${ma}`;
+                const lblBN = exData ? `BN = ${exData.diagramLabels.bn}` : `BN = ${bn}`;
+                const lblNC = exData ? `NC = ${exData.diagramLabels.nc}` : `NC = ${nc}`;
+
+                content = `
+                    <polygon points="${B.x},${B.y} ${A.x},${A.y} ${C.x},${C.y}" fill="rgba(0,242,254,0.08)" stroke="#334155" stroke-width="3"/>
+
+                    <!-- Base AC y Paralela MN extendida -->
+                    <g opacity="${segOpacity('PAR')}" class="${segClass('PAR')}">
+                        <line x1="${A.x}" y1="${A.y}" x2="${C.x}" y2="${C.y}" stroke="#e2e8f0" stroke-width="5"/>
+                        <line x1="${M.x - 35}" y1="${M.y - (N.y - M.y) * 0.12}" x2="${N.x + 35}" y2="${N.y + (N.y - M.y) * 0.12}" stroke="#fde047" stroke-width="4.5" stroke-dasharray="9 5"/>
+                    </g>
+
+                    <!-- 4 Segmentos Laterales -->
+                    <line x1="${B.x}" y1="${B.y}" x2="${M.x}" y2="${M.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('BM')}" class="${segClass('BM')}"/>
+                    <line x1="${M.x}" y1="${M.y}" x2="${A.x}" y2="${A.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('MA')}" class="${segClass('MA')}"/>
+                    <line x1="${B.x}" y1="${B.y}" x2="${N.x}" y2="${N.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('BN')}" class="${segClass('BN')}"/>
+                    <line x1="${N.x}" y1="${N.y}" x2="${C.x}" y2="${C.y}" stroke="#39ff14" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('NC')}" class="${segClass('NC')}"/>
+
+                    ${vertexPointSVG(M.x, M.y, 'M', -24, 4)}
+                    ${vertexPointSVG(N.x, N.y, 'N', 24, 4)}
+
+                    ${badgeSVG((B.x + M.x) / 2 - 72, (B.y + M.y) / 2, lblBM, '#00f2fe', '#000', 'BM', 'Segmento superior izquierdo BM')}
+                    ${badgeSVG((M.x + A.x) / 2 - 72, (M.y + A.y) / 2, lblMA, '#facc15', '#000', 'MA', 'Segmento inferior izquierdo MA')}
+                    ${badgeSVG((B.x + N.x) / 2 + 72, (B.y + N.y) / 2, lblBN, '#fe0979', '#fff', 'BN', 'Segmento superior derecho BN')}
+                    ${badgeSVG((N.x + C.x) / 2 + 72, (N.y + C.y) / 2, lblNC, '#39ff14', '#000', 'NC', 'Segmento inferior derecho NC')}
+
+                    <!-- Controles arrastrables: Vértices A, B, C + Paralela MN -->
+                    ${draggableHandleSVG(midMN.x, midMN.y, 'MN_HANDLE', '', 0, -20, '#fde047', 'MOVER PARALELA MN')}
+                    ${draggableHandleSVG(B.x, B.y, 'B', 'B', 0, -18, '#00f2fe')}
+                    ${draggableHandleSVG(A.x, A.y, 'A', 'A', -22, 18, '#00f2fe')}
+                    ${draggableHandleSVG(C.x, C.y, 'C', 'C', 22, 18, '#00f2fe')}
+                `;
+
+                liveEq.innerHTML = exData
+                    ? exData.equationPreview
+                    : `<span class="latex-frac"><span class="num text-cyan-300">BM (${bm})</span><span class="den text-yellow-300">MA (${ma})</span></span> = <span class="latex-frac"><span class="num text-pink-400">BN (${bn})</span><span class="den text-[#39ff14]">NC (${nc})</span></span> = <b class="text-[#39ff14]">${ratioVal}</b>`;
+
+            } else if (th.id === 3) {
+                // 3. TEOREMA DE LA BISECTRIZ INTERIOR: Vértices A, B, C manipulables, BD se mantiene bisectriz exacta y muestra α° y α°
+                const { A, B, C } = geoState;
+                const lenA = dist2D(A, B);
+                const lenB = dist2D(B, C);
+                const ratioM = lenA / ((lenA + lenB) || 1);
+
+                const D = {
+                    x: A.x + (C.x - A.x) * ratioM,
+                    y: A.y + (C.y - A.y) * ratioM
+                };
+
+                const a = +(lenA / scaleUnit).toFixed(1);
+                const b = +(lenB / scaleUnit).toFixed(1);
+                const m = +(dist2D(A, D) / scaleUnit).toFixed(1);
+                const n = +(dist2D(D, C) / scaleUnit).toFixed(1);
+
+                const totalAngleB = angleBetweenDeg(A, B, C);
+                const halfAlpha = +(totalAngleB / 2).toFixed(1);
+                const posAlpha1 = getBisectorLabelPos(B, A, D, 74);
+                const posAlpha2 = getBisectorLabelPos(B, D, C, 74);
+
+                const lblA = exData ? `a = ${exData.diagramLabels.a}` : `a = ${a}`;
+                const lblB = exData ? `b = ${exData.diagramLabels.b}` : `b = ${b}`;
+                const lblM = exData ? `m = ${exData.diagramLabels.m}` : `m = ${m}`;
+                const lblN = exData ? `n = ${exData.diagramLabels.n}` : `n = ${n}`;
+
+                content = `
+                    <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(0,242,254,0.07)" stroke="#334155" stroke-width="2.5"/>
+
+                    <!-- Arcos iguales α y α de la Bisectriz Interior con su medida exacta en grados -->
+                    ${createAngleArcSVG(B, A, D, 52, 'rgba(250,204,21,0.28)', '#facc15', 'BIS')}
+                    ${createAngleArcSVG(B, D, C, 60, 'rgba(250,204,21,0.28)', '#facc15', 'BIS')}
+                    <text x="${posAlpha1.x}" y="${posAlpha1.y}" text-anchor="middle" fill="#fde047" font-family="KaTeX_Main, serif" font-size="15" font-weight="bold">α=${halfAlpha}°</text>
+                    <text x="${posAlpha2.x}" y="${posAlpha2.y}" text-anchor="middle" fill="#fde047" font-family="KaTeX_Main, serif" font-size="15" font-weight="bold">α=${halfAlpha}°</text>
+
+                    <!-- Rayo de la Bisectriz Interior BD -->
+                    <line x1="${B.x}" y1="${B.y}" x2="${D.x}" y2="${D.y}" stroke="#ffffff" stroke-width="4.5" stroke-dasharray="9 5" opacity="${segOpacity('BIS')}" class="${segClass('BIS')}"/>
+
+                    <!-- Lados a y b + Segmentos m y n -->
+                    <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_A')}" class="${segClass('SIDE_A')}"/>
+                    <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_B')}" class="${segClass('SIDE_B')}"/>
+                    <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SEG_M')}" class="${segClass('SEG_M')}"/>
+                    <line x1="${D.x}" y1="${D.y}" x2="${C.x}" y2="${C.y}" stroke="#39ff14" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SEG_N')}" class="${segClass('SEG_N')}"/>
+
+                    ${vertexPointSVG(D.x, D.y, 'D', 0, 26)}
+
+                    ${badgeSVG((A.x + B.x) / 2 - 65, (A.y + B.y) / 2, lblA, '#00f2fe', '#000', 'SIDE_A', 'Lado izquierdo a = AB')}
+                    ${badgeSVG((B.x + C.x) / 2 + 65, (B.y + C.y) / 2, lblB, '#fe0979', '#fff', 'SIDE_B', 'Lado derecho b = BC')}
+                    ${badgeSVG((A.x + D.x) / 2, (A.y + D.y) / 2 + 42, lblM, '#facc15', '#000', 'SEG_M', 'Proyección m = AD sobre la base')}
+                    ${badgeSVG((D.x + C.x) / 2, (D.y + C.y) / 2 + 42, lblN, '#39ff14', '#000', 'SEG_N', 'Proyección n = DC sobre la base')}
+
+                    <!-- Vértices arrastrables -->
+                    ${draggableHandleSVG(B.x, B.y, 'B', 'B', 0, -18, '#00f2fe', 'MOVER VÉRTICE B')}
+                    ${draggableHandleSVG(A.x, A.y, 'A', 'A', -22, 16, '#00f2fe')}
+                    ${draggableHandleSVG(C.x, C.y, 'C', 'C', 22, 16, '#00f2fe')}
+                `;
+
+                liveEq.innerHTML = exData
+                    ? exData.equationPreview
+                    : `<span class="text-yellow-300 mr-2">∠BD (α = ${halfAlpha}° y α = ${halfAlpha}°)</span> <span class="latex-frac"><span class="num text-cyan-300">a (${a})</span><span class="den text-pink-400">b (${b})</span></span> = <span class="latex-frac"><span class="num text-yellow-300">m (${m})</span><span class="den text-[#39ff14]">n (${n})</span></span> = <b class="text-[#39ff14]">${(a / (b || 1)).toFixed(2)}</b>`;
+
+            } else if (th.id === 4) {
+                // 4. TEOREMA DE LA BISECTRIZ EXTERIOR: Vértices A, B, C manipulables, BE recalculado con ángulo exterior β° y β°
+                const { A, B, C } = geoState;
+                const lenA = dist2D(A, B);
+                const lenB = dist2D(B, C);
+                const baseAC = dist2D(A, C);
+
+                // Por el teorema de la bisectriz exterior: AE / CE = a / b => (AC + CE) / CE = a / b
+                const ratioAB = Math.max(1.35, lenA / Math.max(20, lenB));
+                const lenCE = Math.min(390, baseAC / (ratioAB - 1));
+                const E = { x: Math.min(815, C.x + lenCE), y: A.y };
+
+                const extAB = {
+                    x: B.x + ((B.x - A.x) / (lenA || 1)) * 95,
+                    y: B.y + ((B.y - A.y) / (lenA || 1)) * 95
+                };
+
+                const intB = angleBetweenDeg(A, B, C);
+                const halfBeta = +((180 - intB) / 2).toFixed(1);
+                const posBeta1 = getBisectorLabelPos(B, extAB, E, 68);
+                const posBeta2 = getBisectorLabelPos(B, E, C, 68);
+
+                const a = +(lenA / scaleUnit).toFixed(1);
+                const b = +(lenB / scaleUnit).toFixed(1);
+                const n = +(dist2D(C, E) / scaleUnit).toFixed(1);
+                const m = +((a * n) / (b || 1)).toFixed(1);
+
+                const lblA = exData ? `a = ${exData.diagramLabels.a}` : `a = ${a}`;
+                const lblB = exData ? `b = ${exData.diagramLabels.b}` : `b = ${b}`;
+                const lblM = exData ? `m (AE) = ${exData.diagramLabels.m}` : `m (AE) = ${m}`;
+                const lblN = exData ? `n (CE) = ${exData.diagramLabels.n}` : `n (CE) = ${n}`;
+
+                content = `
+                    <!-- Triángulo ABC sombreado y recta base hasta E -->
+                    <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(0,242,254,0.12)" stroke="#475569" stroke-width="2.5"/>
+                    <line x1="${A.x}" y1="${A.y}" x2="${E.x}" y2="${E.y}" stroke="#64748b" stroke-width="3.5"/>
+
+                    <!-- Prolongación de AB y ángulos iguales β y β de la Bisectriz Exterior -->
+                    <line x1="${B.x}" y1="${B.y}" x2="${extAB.x}" y2="${extAB.y}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6 4"/>
+                    ${createAngleArcSVG(B, extAB, E, 46, 'rgba(250,204,21,0.3)', '#facc15', 'BIS')}
+                    ${createAngleArcSVG(B, E, C, 54, 'rgba(250,204,21,0.3)', '#facc15', 'BIS')}
+                    <text x="${posBeta1.x + 12}" y="${posBeta1.y}" text-anchor="middle" fill="#fde047" font-family="KaTeX_Main, serif" font-size="14.5" font-weight="bold">β=${halfBeta}°</text>
+                    <text x="${posBeta2.x + 8}" y="${posBeta2.y + 8}" text-anchor="middle" fill="#fde047" font-family="KaTeX_Main, serif" font-size="14.5" font-weight="bold">β=${halfBeta}°</text>
+
+                    <!-- Bisectriz Exterior BE -->
+                    <line x1="${B.x}" y1="${B.y}" x2="${E.x}" y2="${E.y}" stroke="#ffffff" stroke-width="4.5" stroke-dasharray="9 5" opacity="${segOpacity('BIS')}" class="${segClass('BIS')}"/>
+
+                    <!-- Lados a (mayor) y b (menor) -->
+                    <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_A')}" class="${segClass('SIDE_A')}"/>
+                    <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_B')}" class="${segClass('SIDE_B')}"/>
+
+                    <!-- Cota de n = CE (Parte externa) -->
+                    <g opacity="${segOpacity('SEG_N')}" class="${segClass('SEG_N')}">
+                        <line x1="${C.x}" y1="${A.y + 38}" x2="${E.x}" y2="${A.y + 38}" stroke="#39ff14" stroke-width="5"/>
+                        <line x1="${C.x}" y1="${A.y + 28}" x2="${C.x}" y2="${A.y + 48}" stroke="#39ff14" stroke-width="3"/>
+                        <line x1="${E.x}" y1="${A.y + 28}" x2="${E.x}" y2="${A.y + 48}" stroke="#39ff14" stroke-width="3"/>
+                    </g>
+
+                    <!-- Cota de m = AE (TODO EL TOTAL DESDE A HASTA E) -->
+                    <g opacity="${segOpacity('SEG_M')}" class="${segClass('SEG_M')}">
+                        <line x1="${A.x}" y1="${A.y + 88}" x2="${E.x}" y2="${A.y + 88}" stroke="#facc15" stroke-width="5"/>
+                        <line x1="${A.x}" y1="${A.y + 78}" x2="${A.x}" y2="${A.y + 98}" stroke="#facc15" stroke-width="3"/>
+                        <line x1="${E.x}" y1="${A.y + 78}" x2="${E.x}" y2="${A.y + 98}" stroke="#facc15" stroke-width="3"/>
+                    </g>
+
+                    ${vertexPointSVG(E.x, E.y, 'E', 20, 4)}
+
+                    ${badgeSVG((A.x + B.x) / 2 - 52, (A.y + B.y) / 2 - 12, lblA, '#00f2fe', '#000', 'SIDE_A', 'Lado mayor a = AB')}
+                    ${badgeSVG((B.x + C.x) / 2 - 42, (B.y + C.y) / 2 + 12, lblB, '#fe0979', '#fff', 'SIDE_B', 'Lado menor b = BC')}
+                    ${badgeSVG((C.x + E.x) / 2, A.y + 38, lblN, '#39ff14', '#000', 'SEG_N', 'n = CE: únicamente la prolongación externa')}
+                    ${badgeSVG((A.x + E.x) / 2, A.y + 88, lblM, '#facc15', '#000', 'SEG_M', 'm = AE: TODO el segmento total desde A hasta E')}
+
+                    <!-- Vértices arrastrables -->
+                    ${draggableHandleSVG(B.x, B.y, 'B', 'B', -18, -16, '#00f2fe', 'MOVER VÉRTICE B')}
+                    ${draggableHandleSVG(A.x, A.y, 'A', 'A', -22, 6, '#00f2fe')}
+                    ${draggableHandleSVG(C.x, C.y, 'C', 'C', 0, -18, '#00f2fe')}
+                `;
+
+                liveEq.innerHTML = exData
+                    ? exData.equationPreview
+                    : `<span class="text-yellow-300 mr-2">∠BE (β = ${halfBeta}° y β = ${halfBeta}°)</span> <span class="latex-frac"><span class="num text-cyan-300">a (${a})</span><span class="den text-pink-400">b (${b})</span></span> = <span class="latex-frac"><span class="num text-yellow-300">m (${m})</span><span class="den text-[#39ff14]">n (${n})</span></span> = <b class="text-[#39ff14]">${(a / (b || 1)).toFixed(2)}</b>`;
+
+            } else if (th.id >= 5 && th.id <= 7) {
+                // 5, 6 y 7: CRITERIOS DE SEMEJANZA DE TRIÁNGULOS (AA, LAL, LLL)
+                // El alumno manipula los vértices de ΔABC y también la escala de ΔMNP, manteniendo ΔABC ~ ΔMNP
+                const { A, B, C, SCALE_HANDLE } = geoState;
+                const k = SCALE_HANDLE.k || 2.0;
+
+                // Construimos ΔMNP geométricamente semejante a ΔABC con razón k
+                const baseM = { x: 540, y: 410 };
+                const M = baseM;
+                const P = {
+                    x: M.x + (C.x - A.x) / k,
+                    y: M.y + (C.y - A.y) / k
+                };
+                const N = {
+                    x: M.x + (B.x - A.x) / k,
+                    y: M.y + (B.y - A.y) / k
+                };
+
+                const sideAB = +(dist2D(A, B) / scaleUnit).toFixed(1);
+                const sideBC = +(dist2D(B, C) / scaleUnit).toFixed(1);
+                const sideAC = +(dist2D(A, C) / scaleUnit).toFixed(1);
+
+                const sideMN = +(sideAB / k).toFixed(1);
+                const sideNP = +(sideBC / k).toFixed(1);
+                const sideMP = +(sideAC / k).toFixed(1);
+
+                const angAlpha = Math.round(angleBetweenDeg(B, A, C));
+                const angTheta = Math.round(angleBetweenDeg(A, C, B));
+
+                if (th.id === 5) {
+                    // Criterio 1: Ángulo - Ángulo (AA)
+                    const lblAB = exData ? exData.diagramLabels.ab : `${sideAB}`;
+                    const lblMN = exData ? exData.diagramLabels.mn : `${sideMN}`;
+                    const lblBC = exData ? exData.diagramLabels.bc : `${sideBC}`;
+                    const lblNP = exData ? exData.diagramLabels.np : `${sideNP}`;
+
+                    content = `
+                        <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(0,242,254,0.08)" stroke="#475569" stroke-width="3"/>
+                        <polygon points="${M.x},${M.y} ${N.x},${N.y} ${P.x},${P.y}" fill="rgba(254,9,121,0.08)" stroke="#475569" stroke-width="3"/>
+
+                        <text x="485" y="275" text-anchor="middle" fill="#ffffff" font-family="KaTeX_Main, serif" font-size="38" font-weight="bold">∼</text>
+
+                        <!-- Ángulos congruentes α y θ con sus grados en vivo -->
+                        ${createAngleArcSVG(A, B, C, 44, 'rgba(0,242,254,0.35)', '#00f2fe', 'ANG_ALPHA')}
+                        ${createAngleArcSVG(M, N, P, 34, 'rgba(0,242,254,0.35)', '#00f2fe', 'ANG_ALPHA')}
+                        <text x="${A.x + 58}" y="${A.y - 12}" fill="#00f2fe" font-family="KaTeX_Main, serif" font-size="16" font-weight="bold">α=${angAlpha}°</text>
+                        <text x="${M.x + 48}" y="${M.y - 10}" fill="#00f2fe" font-family="KaTeX_Main, serif" font-size="15" font-weight="bold">α=${angAlpha}°</text>
+
+                        ${createAngleArcSVG(C, A, B, 44, 'rgba(250,204,21,0.35)', '#facc15', 'ANG_THETA')}
+                        ${createAngleArcSVG(P, M, N, 34, 'rgba(250,204,21,0.35)', '#facc15', 'ANG_THETA')}
+                        <text x="${C.x - 58}" y="${C.y - 12}" fill="#facc15" font-family="KaTeX_Main, serif" font-size="16" font-weight="bold">θ=${angTheta}°</text>
+                        <text x="${P.x - 48}" y="${P.y - 10}" fill="#facc15" font-family="KaTeX_Main, serif" font-size="15" font-weight="bold">θ=${angTheta}°</text>
+
+                        <!-- Lados opuestos a θ (AB y MN) -->
+                        <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#39ff14" stroke-width="6.5" stroke-linecap="round" opacity="${segOpacity('OPP_THETA')}" class="${segClass('OPP_THETA')}"/>
+                        <line x1="${M.x}" y1="${M.y}" x2="${N.x}" y2="${N.y}" stroke="#39ff14" stroke-width="6.5" stroke-linecap="round" opacity="${segOpacity('OPP_THETA')}" class="${segClass('OPP_THETA')}"/>
+
+                        <!-- Lados opuestos a α (BC y NP) -->
+                        <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" stroke="#fe0979" stroke-width="6.5" stroke-linecap="round" opacity="${segOpacity('OPP_ALPHA')}" class="${segClass('OPP_ALPHA')}"/>
+                        <line x1="${N.x}" y1="${N.y}" x2="${P.x}" y2="${P.y}" stroke="#fe0979" stroke-width="6.5" stroke-linecap="round" opacity="${segOpacity('OPP_ALPHA')}" class="${segClass('OPP_ALPHA')}"/>
+
+                        ${vertexPointSVG(M.x, M.y, 'M', -18, 18)}
+                        ${vertexPointSVG(P.x, P.y, 'P', 18, 18)}
+
+                        ${badgeSVG((A.x + B.x) / 2 - 48, (A.y + B.y) / 2, lblAB, '#39ff14', '#000', 'OPP_THETA', 'Lado AB opuesto a θ')}
+                        ${badgeSVG((M.x + N.x) / 2 - 42, (M.y + N.y) / 2, lblMN, '#39ff14', '#000', 'OPP_THETA', 'Lado MN opuesto a θ')}
+                        ${badgeSVG((B.x + C.x) / 2 + 48, (B.y + C.y) / 2, lblBC, '#fe0979', '#fff', 'OPP_ALPHA', 'Lado BC opuesto a α')}
+                        ${badgeSVG((N.x + P.x) / 2 + 42, (N.y + P.y) / 2, lblNP, '#fe0979', '#fff', 'OPP_ALPHA', 'Lado NP opuesto a α')}
+
+                        ${draggableHandleSVG(B.x, B.y, 'B', 'B', 0, -18, '#00f2fe', 'DEFORMAR ΔABC')}
+                        ${draggableHandleSVG(A.x, A.y, 'A', 'A', -20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(C.x, C.y, 'C', 'C', 20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(N.x, N.y, 'SCALE_HANDLE', 'N', 0, -18, '#fe0979', 'ESCALAR ΔMNP')}
+                    `;
+
+                    liveEq.innerHTML = exData
+                        ? exData.equationPreview
+                        : `<span class="text-cyan-300">∠α=${angAlpha}°, ∠θ=${angTheta}°</span> &nbsp;⇒&nbsp; <span class="latex-frac"><span class="num text-[#39ff14]">AB (${sideAB})</span><span class="den text-[#39ff14]">MN (${sideMN})</span></span> = <span class="latex-frac"><span class="num text-pink-400">BC (${sideBC})</span><span class="den text-pink-400">NP (${sideNP})</span></span> = <b class="text-yellow-300">k (${k})</b>`;
+
+                } else if (th.id === 6) {
+                    // Criterio 2: Lado - Ángulo - Lado (LAL)
+                    const lblPK = exData ? exData.diagramLabels.pk : `pk = ${sideAB}`;
+                    const lblP = exData ? exData.diagramLabels.p : `p = ${sideMN}`;
+                    const lblNK = exData ? exData.diagramLabels.nk : `nk = ${sideAC}`;
+                    const lblN = exData ? exData.diagramLabels.n : `n = ${sideMP}`;
+
+                    content = `
+                        <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(0,242,254,0.08)" stroke="#475569" stroke-width="3"/>
+                        <polygon points="${M.x},${M.y} ${N.x},${N.y} ${P.x},${P.y}" fill="rgba(191,0,255,0.08)" stroke="#475569" stroke-width="3"/>
+
+                        <text x="485" y="275" text-anchor="middle" fill="#ffffff" font-family="KaTeX_Main, serif" font-size="38" font-weight="bold">∼</text>
+
+                        <!-- Ángulo comprendido α -->
+                        ${createAngleArcSVG(A, B, C, 46, 'rgba(254,9,121,0.38)', '#fe0979', 'ANG_ALPHA')}
+                        ${createAngleArcSVG(M, N, P, 36, 'rgba(254,9,121,0.38)', '#fe0979', 'ANG_ALPHA')}
+                        <text x="${A.x + 62}" y="${A.y - 12}" fill="#fe0979" font-family="KaTeX_Main, serif" font-size="16" font-weight="bold">α=${angAlpha}°</text>
+                        <text x="${M.x + 50}" y="${M.y - 10}" fill="#fe0979" font-family="KaTeX_Main, serif" font-size="15" font-weight="bold">α=${angAlpha}°</text>
+
+                        <!-- Lados proporcionales pk y p -->
+                        <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_P')}" class="${segClass('SIDE_P')}"/>
+                        <line x1="${M.x}" y1="${M.y}" x2="${N.x}" y2="${N.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_P')}" class="${segClass('SIDE_P')}"/>
+
+                        <!-- Bases proporcionales nk y n -->
+                        <line x1="${A.x}" y1="${A.y}" x2="${C.x}" y2="${C.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_N')}" class="${segClass('SIDE_N')}"/>
+                        <line x1="${M.x}" y1="${M.y}" x2="${P.x}" y2="${P.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_N')}" class="${segClass('SIDE_N')}"/>
+
+                        ${vertexPointSVG(M.x, M.y, 'M', -18, 18)}
+                        ${vertexPointSVG(P.x, P.y, 'P', 18, 18)}
+
+                        ${badgeSVG((A.x + B.x) / 2 - 54, (A.y + B.y) / 2, lblPK, '#00f2fe', '#000', 'SIDE_P', 'Lado AB = pk')}
+                        ${badgeSVG((M.x + N.x) / 2 - 46, (M.y + N.y) / 2, lblP, '#00f2fe', '#000', 'SIDE_P', 'Lado homólogo MN = p')}
+                        ${badgeSVG((A.x + C.x) / 2, A.y + 42, lblNK, '#facc15', '#000', 'SIDE_N', 'Base AC = nk')}
+                        ${badgeSVG((M.x + P.x) / 2, M.y + 42, lblN, '#facc15', '#000', 'SIDE_N', 'Base homóloga MP = n')}
+
+                        ${draggableHandleSVG(B.x, B.y, 'B', 'B', 0, -18, '#00f2fe', 'DEFORMAR ΔABC')}
+                        ${draggableHandleSVG(A.x, A.y, 'A', 'A', -20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(C.x, C.y, 'C', 'C', 20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(N.x, N.y, 'SCALE_HANDLE', 'N', 0, -18, '#fe0979', 'ESCALAR ΔMNP')}
+                    `;
+
+                    liveEq.innerHTML = exData
+                        ? exData.equationPreview
+                        : `<span class="latex-frac"><span class="num text-cyan-300">${sideAB}</span><span class="den text-cyan-300">${sideMN}</span></span> = <span class="latex-frac"><span class="num text-yellow-300">${sideAC}</span><span class="den text-yellow-300">${sideMP}</span></span> = <b class="text-[#39ff14]">k (${k})</b> &nbsp;con ∠α = ${angAlpha}°`;
+
+                } else {
+                    // Criterio 3: Lado - Lado - Lado (LLL)
+                    const lblPK = exData ? exData.diagramLabels.pk : `pk = ${sideAB}`;
+                    const lblP = exData ? exData.diagramLabels.p : `p = ${sideMN}`;
+                    const lblMK = exData ? exData.diagramLabels.mk : `mk = ${sideBC}`;
+                    const lblM = exData ? exData.diagramLabels.m : `m = ${sideNP}`;
+                    const lblNK = exData ? exData.diagramLabels.nk : `nk = ${sideAC}`;
+                    const lblN = exData ? exData.diagramLabels.n : `n = ${sideMP}`;
+
+                    content = `
+                        <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(57,255,20,0.08)" stroke="#334155" stroke-width="2"/>
+                        <polygon points="${M.x},${M.y} ${N.x},${N.y} ${P.x},${P.y}" fill="rgba(0,242,254,0.08)" stroke="#334155" stroke-width="2"/>
+
+                        <text x="485" y="275" text-anchor="middle" fill="#ffffff" font-family="KaTeX_Main, serif" font-size="38" font-weight="bold">∼</text>
+
+                        <!-- Par Izquierdo pk y p -->
+                        <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_P')}" class="${segClass('SIDE_P')}"/>
+                        <line x1="${M.x}" y1="${M.y}" x2="${N.x}" y2="${N.y}" stroke="#00f2fe" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_P')}" class="${segClass('SIDE_P')}"/>
+
+                        <!-- Par Derecho mk y m -->
+                        <line x1="${B.x}" y1="${B.y}" x2="${C.x}" y2="${C.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_M')}" class="${segClass('SIDE_M')}"/>
+                        <line x1="${N.x}" y1="${N.y}" x2="${P.x}" y2="${P.y}" stroke="#fe0979" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_M')}" class="${segClass('SIDE_M')}"/>
+
+                        <!-- Par Bases nk y n -->
+                        <line x1="${A.x}" y1="${A.y}" x2="${C.x}" y2="${C.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_N')}" class="${segClass('SIDE_N')}"/>
+                        <line x1="${M.x}" y1="${M.y}" x2="${P.x}" y2="${P.y}" stroke="#facc15" stroke-width="7" stroke-linecap="round" opacity="${segOpacity('SIDE_N')}" class="${segClass('SIDE_N')}"/>
+
+                        ${vertexPointSVG(M.x, M.y, 'M', -18, 18)}
+                        ${vertexPointSVG(P.x, P.y, 'P', 18, 18)}
+
+                        ${badgeSVG((A.x + B.x) / 2 - 54, (A.y + B.y) / 2, lblPK, '#00f2fe', '#000', 'SIDE_P', 'Lado izquierdo mayor pk')}
+                        ${badgeSVG((M.x + N.x) / 2 - 46, (M.y + N.y) / 2, lblP, '#00f2fe', '#000', 'SIDE_P', 'Lado izquierdo menor p')}
+                        ${badgeSVG((B.x + C.x) / 2 + 54, (B.y + C.y) / 2, lblMK, '#fe0979', '#fff', 'SIDE_M', 'Lado derecho mayor mk')}
+                        ${badgeSVG((N.x + P.x) / 2 + 46, (N.y + P.y) / 2, lblM, '#fe0979', '#fff', 'SIDE_M', 'Lado derecho menor m')}
+                        ${badgeSVG((A.x + C.x) / 2, A.y + 42, lblNK, '#facc15', '#000', 'SIDE_N', 'Base mayor nk')}
+                        ${badgeSVG((M.x + P.x) / 2, M.y + 42, lblN, '#facc15', '#000', 'SIDE_N', 'Base menor n')}
+
+                        ${draggableHandleSVG(B.x, B.y, 'B', 'B', 0, -18, '#00f2fe', 'DEFORMAR ΔABC')}
+                        ${draggableHandleSVG(A.x, A.y, 'A', 'A', -20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(C.x, C.y, 'C', 'C', 20, 18, '#00f2fe')}
+                        ${draggableHandleSVG(N.x, N.y, 'SCALE_HANDLE', 'N', 0, -18, '#39ff14', 'ESCALAR ΔMNP')}
+                    `;
+
+                    liveEq.innerHTML = exData
+                        ? exData.equationPreview
+                        : `<span class="latex-frac"><span class="num text-cyan-300">${sideAB}</span><span class="den text-cyan-300">${sideMN}</span></span> = <span class="latex-frac"><span class="num text-pink-400">${sideBC}</span><span class="den text-pink-400">${sideNP}</span></span> = <span class="latex-frac"><span class="num text-yellow-300">${sideAC}</span><span class="den text-yellow-300">${sideMP}</span></span> = <b class="text-[#39ff14]">k (${k})</b>`;
+                }
+            }
+
+            svg.innerHTML = content;
+        }
+
+        function initSlidersForCurrentTheorem() {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            geoState = cloneGeoState(th.id);
+        }
+
+        function switchDiagramViewMode(mode, silent = false) {
+            currentDiagramMode = mode;
+            if (!silent) playSound('switch');
+
+            ['EXPLORE', 'EX1', 'EX2'].forEach(m => {
+                const btn = document.getElementById(`modeBtn-${m}`);
+                if (!btn) return;
+                if (m === mode) {
+                    btn.className = "px-3 py-1.5 rounded-xl font-black text-xs bg-cyan-400 text-black shadow-[0_0_15px_rgba(0,242,254,0.5)] transition-all";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl font-black text-xs bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition-all";
+                }
+            });
+
+            const dot = document.getElementById('diagramModeDot');
+            const title = document.getElementById('diagramOverlayTitle');
+            const sub = document.getElementById('diagramOverlaySub');
+
+            if (mode === 'EXPLORE') {
+                dot.className = "w-3 h-3 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_10px_#00f2fe]";
+                title.textContent = "PIZARRA GEOMÉTRICA INTERACTIVA • MANIPULACIÓN EN VIVO";
+                sub.textContent = "Arrastra las rectas paralelas, secantes o vértices del triángulo y comprueba que la propiedad se mantiene";
+            } else if (mode === 'EX1') {
+                dot.className = "w-3 h-3 shrink-0 rounded-full bg-yellow-400 shadow-[0_0_10px_#facc15]";
+                title.textContent = "VISUALIZANDO DATOS DEL EJEMPLO 1 EN LA FIGURA";
+                sub.textContent = "Observa dónde se ubica cada dato del Ejemplo 1 (también puedes arrastrar los controles)";
+            } else if (mode === 'EX2') {
+                dot.className = "w-3 h-3 shrink-0 rounded-full bg-pink-500 shadow-[0_0_10px_#fe0979]";
+                title.textContent = "VISUALIZANDO DATOS DEL EJEMPLO 2 EN LA FIGURA";
+                sub.textContent = "Observa dónde se ubica cada dato del Ejemplo 2 (también puedes arrastrar los controles)";
+            }
+
+            renderGeometrySVG();
+        }
+
+        function selectTheorem(index, isSilent = false) {
+            clearDemoTimers();
+            currentTheoremIdx = index;
+            activeHighlightKey = 'ALL';
+            const th = THEOREMS_DATA[index];
+
+            for (let i = 0; i < THEOREMS_DATA.length; i++) {
+                const btn = document.getElementById(`thNavBtn-${i}`);
+                if (!btn) continue;
+                if (i === index) {
+                    btn.className = "px-3 py-1.5 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-b from-cyan-400 to-cyan-600 text-black shadow-[0_0_12px_rgba(0,242,254,0.45)]";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-900/90 text-slate-300 border border-slate-700 hover:border-cyan-400";
+                }
+            }
+
+            const isProp = index < 4;
+            const blockName = isProp ? 'BLOQUE I: PROPORCIONALIDAD' : 'BLOQUE II: SEMEJANZA DE TRIÁNGULOS';
+            const subLabel = isProp
+                ? `PROPIEDAD ${th.blockNum} DE 4`
+                : `CRITERIO ${th.blockNum} DE 3`;
+
+            document.getElementById('headerSubtitleBadge').textContent = `${blockName} • ${subLabel}`;
+            document.getElementById('theoremCategoryPill').textContent = `${blockName} • N.° ${th.blockNum}`;
+            document.getElementById('theoremConditionBadge').textContent = th.conditionBadge;
+            document.getElementById('theoremTitleDisplay').textContent = `${th.blockNum}. ${th.shortTitle}`;
+            document.getElementById('theoremLatexFormulaBox').innerHTML = th.formulaHTML;
+            document.getElementById('identifyTipBanner').innerHTML = th.identifyTip;
+
+            renderElementDetectorButtons();
+            initSlidersForCurrentTheorem();
+
+            const ex1 = th.examples[0];
+            const ex2 = th.examples[1];
+
+            document.getElementById('ex1PromptText').innerHTML = ex1.prompt;
+            document.getElementById('ex1EquationPreview').innerHTML = ex1.equationPreview;
+            document.getElementById('ex1UnitSymbol').textContent = ex1.unit || 'u';
+
+            document.getElementById('ex2PromptText').innerHTML = ex2.prompt;
+            document.getElementById('ex2EquationPreview').innerHTML = ex2.equationPreview;
+            document.getElementById('ex2UnitSymbol').textContent = ex2.unit || 'u';
+
+            resetCurrentExamples(true);
+            switchDiagramViewMode('EXPLORE', true);
+
+            if (!isSilent) playSound('switch');
+            setRobotMood('happy');
+            updateRobotSpeech(th.robotIntro);
+        }
+
+        function setExampleStatusBadge(badgeId, isValid, isEmpty) {
+            const el = document.getElementById(badgeId);
+            if (!el) return;
+            if (isEmpty) {
+                el.innerHTML = `<span class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400 text-xs"><i class="fa-solid fa-minus"></i></span>`;
+            } else if (isValid) {
+                el.innerHTML = `<span class="w-8 h-8 rounded-full bg-[#39ff14] text-black flex items-center justify-center text-xs font-black shadow-[0_0_12px_#39ff14]"><i class="fa-solid fa-check"></i></span>`;
+            } else {
+                el.innerHTML = `<span class="w-8 h-8 rounded-full bg-[#fe0979] text-white flex items-center justify-center text-xs font-black"><i class="fa-solid fa-xmark"></i></span>`;
+            }
+        }
+
+        function validateExampleAnswer(exampleNumber, suppressAudio = false) {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            const ex = th.examples[exampleNumber - 1];
+
+            const inputEl = document.getElementById(`inputEx${exampleNumber}Answer`);
+            const stepBox = document.getElementById(`ex${exampleNumber}StepByStepBox`);
+            const badgeId = `statusEx${exampleNumber}Badge`;
+            const flagKey = exampleNumber === 1 ? 'ex1' : 'ex2';
+
+            const raw = inputEl.value.trim();
+            const val = parseFloat(raw);
+
+            if (raw === '') {
+                inputEl.classList.remove('valid-input', 'invalid-input');
+                setExampleStatusBadge(badgeId, false, true);
+                stepBox.innerHTML = `Ingresa tu respuesta arriba para verificar la resolución paso a paso.`;
+                solvedState[flagKey] = false;
+            } else if (Math.abs(val - ex.answer) < 0.01) {
+                if (!solvedState[flagKey] && !suppressAudio) {
+                    playSound('valid', exampleNumber);
+                }
+                inputEl.classList.add('valid-input');
+                inputEl.classList.remove('invalid-input');
+                setExampleStatusBadge(badgeId, true, false);
+                stepBox.innerHTML = `<div class="math-expr text-sm text-white"><span class="text-cyan-400 font-sans font-black text-[11px] uppercase mr-2">DESARROLLO:</span>${ex.stepsHTML}</div>`;
+                solvedState[flagKey] = true;
+            } else {
+                inputEl.classList.add('invalid-input');
+                inputEl.classList.remove('valid-input');
+                setExampleStatusBadge(badgeId, false, false);
+                stepBox.innerHTML = `<span class="text-pink-400 font-bold">Multiplica en aspa los elementos del Paso 1 e inténtalo de nuevo.</span>`;
+                solvedState[flagKey] = false;
+            }
+
+            const count = (solvedState.ex1 ? 1 : 0) + (solvedState.ex2 ? 1 : 0);
+            document.getElementById('studentProgressBadge').textContent = `EJEMPLOS RESUELTOS: ${count} / 2`;
+
+            if (count === 2 && !suppressAudio) {
+                playSound('celebrate');
+                updateRobotSpeech(`¡Excelente trabajo Aula N.° 3! Dominaron los 2 ejemplos de <b>${th.shortTitle}</b>. ¡Pueden pasar al siguiente teorema o criterio arriba!`);
+            }
+        }
+
+        function explainHowToIdentify() {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            playSound('switch');
+            setRobotMood('thinking');
+            activeHighlightKey = 'ALL';
+            renderElementDetectorButtons();
+            switchDiagramViewMode('EXPLORE', true);
+            updateRobotSpeech(th.identifyTip);
+        }
+
+        function giveExampleHint() {
+            const th = THEOREMS_DATA[currentTheoremIdx];
+            playSound('switch');
+            setRobotMood('thinking');
+
+            if (!solvedState.ex1) {
+                switchDiagramViewMode('EX1', true);
+                updateRobotSpeech(`<b>Pista para el Ejemplo 1:</b> Observa la proporción <span class="math-expr text-cyan-300">${th.examples[0].equationPreview}</span> y resuelve: <span class="math-expr text-yellow-300">${th.examples[0].stepsHTML}</span>`);
+                document.getElementById('inputEx1Answer').focus();
+            } else if (!solvedState.ex2) {
+                switchDiagramViewMode('EX2', true);
+                updateRobotSpeech(`<b>Pista para el Ejemplo 2:</b> Observa la proporción <span class="math-expr text-pink-300">${th.examples[1].equationPreview}</span> y resuelve: <span class="math-expr text-yellow-300">${th.examples[1].stepsHTML}</span>`);
+                document.getElementById('inputEx2Answer').focus();
+            } else {
+                updateRobotSpeech(`¡Ya completaste los 2 ejemplos de esta propiedad! Elige otro teorema o criterio en la barra superior.`);
+            }
+        }
+
+        function clearDemoTimers() {
+            demoTimers.forEach(t => clearTimeout(t));
+            demoTimers = [];
+        }
+
+        function autoSolveBothExamples() {
+            clearDemoTimers();
+            const th = THEOREMS_DATA[currentTheoremIdx];
+
+            const t1 = setTimeout(() => {
+                switchDiagramViewMode('EX1', true);
+                const in1 = document.getElementById('inputEx1Answer');
+                in1.value = th.examples[0].answer;
+                validateExampleAnswer(1, false);
+            }, 150);
+
+            const t2 = setTimeout(() => {
+                switchDiagramViewMode('EX2', true);
+                const in2 = document.getElementById('inputEx2Answer');
+                in2.value = th.examples[1].answer;
+                validateExampleAnswer(2, false);
+            }, 650);
+
+            demoTimers.push(t1, t2);
+        }
+
+        function resetCurrentExamples(silent = false) {
+            clearDemoTimers();
+            if (!silent) playSound('switch');
+            const in1 = document.getElementById('inputEx1Answer');
+            const in2 = document.getElementById('inputEx2Answer');
+            if (in1) in1.value = '';
+            if (in2) in2.value = '';
+            solvedState = { ex1: false, ex2: false };
+            validateExampleAnswer(1, true);
+            validateExampleAnswer(2, true);
+        }
+
+        function animateRobotLoop() {
+            requestAnimationFrame(animateRobotLoop);
+            const t = performance.now() * 0.0035;
+
+            if (headGroup) {
+                headGroup.position.y = Math.sin(t) * 0.06;
+                const isBlinking = Math.sin(t * 0.9) > 0.985;
+                if (leftEye && rightEye) {
+                    const targetScaleY = isBlinking ? 0.12 : 1.15;
+                    leftEye.scale.y += (targetScaleY - leftEye.scale.y) * 0.35;
+                    rightEye.scale.y += (targetScaleY - rightEye.scale.y) * 0.35;
+                }
+                if (moodTimer > 0) moodTimer--;
+                else if (!isDraggingRobot) {
+                    headGroup.rotation.y += (Math.sin(t * 0.6) * 0.16 - headGroup.rotation.y) * 0.05;
+                }
+            }
+            if (robotRenderer && robotScene && robotCamera) {
+                robotRenderer.render(robotScene, robotCamera);
+            }
+        }
+
+        function onWindowResize() {
+            const robotContainer = document.getElementById('robotCanvasContainer');
+            if (robotContainer && robotRenderer && robotCamera) {
+                const rw = robotContainer.clientWidth || 128;
+                const rh = robotContainer.clientHeight || 128;
+                robotCamera.aspect = rw / rh;
+                robotCamera.updateProjectionMatrix();
+                robotRenderer.setSize(rw, rh);
+            }
+        }
+
+        window.onload = function () {
+            renderCoverAndNav();
+            initRobot3D();
+            selectTheorem(0, true);
+            animateRobotLoop();
+            window.addEventListener('resize', onWindowResize);
+        };
+    </script>
+</body>
+</html>
